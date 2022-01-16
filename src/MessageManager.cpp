@@ -15,6 +15,9 @@
 */
 
 #include "MessageManager.hpp"
+#include "ExpUtil.hpp"
+#include "DefData.hpp"
+using json = nlohmann::json;
 
 MsgManager::MsgManager() {
 	m_pRMSGThread = new std::thread(&MsgManager::RcvMSGThread, this, this);
@@ -50,10 +53,18 @@ void* MsgManager::RcvMSGThread(void* arg) {
 	{
 		if (m_qRMSG.IsQueue())
 		{
-			msg = m_qRMSG.Dequeue();
+			msg = m_qRMSG.Dequeue();			
 			if (msg != nullptr)
 			{
 				cout << "RcvMSGThread : " << msg->txt<< endl;
+				json j = json::parse(msg->txt);
+				string action = j["Action"];
+				if (action == "Stabilization") {
+					ExpUtil in;
+					VIDEO_INFO info;
+					int result = in.ImportVideoInfo(msg->txt, &info);
+				}
+
 			}
 		}
 		std::this_thread::sleep_for(std::chrono::milliseconds(3));

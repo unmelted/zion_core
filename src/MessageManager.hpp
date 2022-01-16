@@ -26,6 +26,7 @@
 #include <map>
 #include <string>
 #include "MessageQueue.h"
+#include "json.hpp"
 
 class MsgManager {
 
