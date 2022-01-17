@@ -19,7 +19,8 @@
 #include "DefData.hpp"
 using json = nlohmann::json;
 
-MsgManager::MsgManager() {
+MsgManager::MsgManager()
+	: m_taskmanager(TASKPOOL_SIZE) {
 	m_pRMSGThread = new std::thread(&MsgManager::RcvMSGThread, this, this);
 	m_pSMSGThread = new std::thread(&MsgManager::SndMSGThread, this, this);
     b_RMSGThread = true;
@@ -63,6 +64,9 @@ void* MsgManager::RcvMSGThread(void* arg) {
 					ExpUtil in;
 					VIDEO_INFO info;
 					int result = in.ImportVideoInfo(msg->txt, &info);
+					if (result == CMD::ERR_NONE) {
+						m_taskmanager.MakeTask(CMD::POST_STABILIZATION, &info);
+					}
 				}
 
 			}

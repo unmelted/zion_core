@@ -187,6 +187,7 @@ Dove::~Dove() {
 }
 
 int Dove::Process() {
+    dl.Logger("Process started ");    
     if(p->mode == OPTICALFLOW_LK_2DOF)
         ProcessLK();
     else if (p->mode == DETECT_TRACKING)
