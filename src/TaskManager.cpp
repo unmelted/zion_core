@@ -71,8 +71,8 @@ int TaskManager::MakeTask(int mode, void* arg) {
     if(mode == CMD::POST_STABILIZATION) {
         VIDEO_INFO* info = (VIDEO_INFO*)arg;
         Dove stblz(info);
-        EnqueueJob(RunStabilize, &stblz);
-        //RunStabilize(&stblz);
+        //EnqueueJob(RunStabilize, &stblz);
+        RunStabilize(&stblz);
         cur_worker++;
 
     }
