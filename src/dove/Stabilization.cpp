@@ -16,10 +16,20 @@
 
 
 #include "Stabilization.hpp"
+#include <thread>
 
 using namespace std;
 using namespace cv;
 using namespace dove;
+
+Dove::Dove() {
+    p = new PARAM();
+    t = new TIMER();
+    dl = Dlog();
+    dl.SetLogFilename("TEST");    
+    dl.Logger("instance created.. ");    
+
+}
 
 Dove::Dove(VIDEO_INFO* vinfo) {
     p = new PARAM();
@@ -37,11 +47,17 @@ Dove::Dove(VIDEO_INFO* vinfo) {
     Initialize();
 }
 
+void Dove::SetInfo(VIDEO_INFO* vinfo) {
+    ConvertToParam(vinfo);
+    Initialize();
+}
+
 void Dove::ConvertToParam(VIDEO_INFO* info) {
     _in = info->input;
     _out = info->output;
     p->event = info->event;
     int size = info->swipe_period.size();
+    dl.Logger("Conver To Param swipe period size %d", size);
     for(int i = 0 ; i < size; i ++)
     {
         SWIPE_INFO one;
@@ -186,28 +202,23 @@ Dove::~Dove() {
     dl.Logger("delete instance  OK");
 }
 
-int Dove::Process() {
+int Dove::ProcessTemp() {
+    dl.Logger("Process started ");    
     if(p->mode == OPTICALFLOW_LK_2DOF)
         ProcessLK();
     else if (p->mode == DETECT_TRACKING)
-        ProcessTK();
+        Process();
     else if (p->mode == DETECT_TRACKING_CH)
         ProcessChristmas();
 
     return ERR_NONE;
 }   
 
-int Dove::ProcessTK() {
-
-#if defined GPU
-    cv::Ptr<cudacodec::VideoReader> in = cudacodec::createVideoReader(_in);
-    cuda::GpuMat src1ocg; 
-    cuda::GpuMat src1og;
-
-#else
-    VideoCapture in(_in);
-#endif
-    dl.Logger("Process TK started ");
+int Dove::NewTest() {
+    
+    dl.Logger("new test start ");    
+    std::this_thread::sleep_for(std::chrono::seconds(3));
+    VideoCapture in("movie/4dmaker_600.mp4");    
 
     Mat src1oc; Mat src1o;
     int frame_index = 0;
@@ -222,10 +233,51 @@ int Dove::ProcessTK() {
     StartTimer(tm);
 
     int t_frame_start = si[swipe_index].start;
-    int t_frame_end = si[swipe_index].end;
-
+    int t_frame_end = si[swipe_index].end;    
     while(true) {
+        in >> src1oc;
+        if(src1oc.data == NULL)
+            break;
+        dl.Logger("Frameindex [%d] ", frame_index);
+        frame_index ++;
+    }    
+
+    dl.Logger("newtest end ..");
+}
+
+int Dove::Process() {
+
 #if defined GPU
+    cv::Ptr<cudacodec::VideoReader> in = cudacodec::createVideoReader(_in);
+    cuda::GpuMat src1ocg; 
+    cuda::GpuMat src1og;
+
+#else
+//    VideoCapture in(_in);
+    VideoCapture in("movie/4dmaker_600.mp4");
+#endif
+    dl.Logger("Process TK started ");
+
+    Mat src1oc; Mat src1o;
+    int frame_index = 0;
+    int swipe_index = 0;
+    int result = 0;
+    int found = 0;
+    bool final = false;
+    TRACK_OBJ* pre_obj = new TRACK_OBJ();;
+
+    TIMER* tm;
+    tm = new TIMER();    
+    StartTimer(tm);
+    dl.Logger("Check..  ");
+    dl.Logger("si %d %d   ",si[swipe_index].start, si[swipe_index].end);     
+    int t_frame_start = si[swipe_index].start;
+    int t_frame_end = si[swipe_index].end;
+     dl.Logger(" check.. 2 ");
+    while(true) {
+         dl.Logger(" check.. 3 ");
+#if defined GPU
+        dl.Logger(" check.. 4 ");
          if (!in->nextFrame(src1ocg))
              break;
 #else 

@@ -27,6 +27,7 @@
 #include <string>
 #include "MessageQueue.h"
 #include "json.hpp"
+#include "TaskManager.hpp"
 
 class MsgManager {
 
@@ -86,6 +87,7 @@ private :
 	MessageQueue<std::shared_ptr<MSG_T>> m_qRMSG;
 	MessageQueue<std::shared_ptr<SEND_PACKET>> m_qSMSG;    
 
+	TaskPool::TaskManager m_taskmanager;
     void* RcvMSGThread(void* arg);
     void* SndMSGThread(void* arg);
 	void MakeSendMsg();

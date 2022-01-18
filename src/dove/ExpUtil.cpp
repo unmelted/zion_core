@@ -49,6 +49,7 @@ int ExpUtil::ImportVideoInfo(const string js, VIDEO_INFO* info) {
         swi.target_x = elm["target_x"];
         swi.target_y = elm["target_y"];
         swi.zoom = elm["zoom"];
+        cout<< "SWIPE PERIOD start " << swi.start << " end " << swi.end << endl;;
         info->swipe_period.push_back(swi); 
     }
 
@@ -58,6 +59,7 @@ int ExpUtil::ImportVideoInfo(const string js, VIDEO_INFO* info) {
     cout<< "input : "<<info->input << endl;
     cout<< "output : " <<info->output << endl;
     cout<< "event : " <<info->event << endl;
+    cout <<" swipe cnt : " << info->swipe_period.size() << endl;
     return ERR_NONE;
 }
 

@@ -19,11 +19,12 @@
 #include "DefData.hpp"
 using json = nlohmann::json;
 
-MsgManager::MsgManager() {
-	m_pRMSGThread = new std::thread(&MsgManager::RcvMSGThread, this, this);
-	m_pSMSGThread = new std::thread(&MsgManager::SndMSGThread, this, this);
+MsgManager::MsgManager()
+	: m_taskmanager(TASKPOOL_SIZE) {
     b_RMSGThread = true;
-    b_SMSGThread = true;	
+    b_SMSGThread = true;		
+	m_pRMSGThread = new std::thread(&MsgManager::RcvMSGThread, this, this);
+	m_pSMSGThread = new std::thread(&MsgManager::SndMSGThread, this, this);	
 } 
 
 MsgManager::~MsgManager() {
@@ -61,8 +62,11 @@ void* MsgManager::RcvMSGThread(void* arg) {
 				string action = j["Action"];
 				if (action == "Stabilization") {
 					ExpUtil in;
-					VIDEO_INFO info;
-					int result = in.ImportVideoInfo(msg->txt, &info);
+					shared_ptr<VIDEO_INFO>info = make_shared<VIDEO_INFO>();
+					int result = in.ImportVideoInfo(msg->txt, info.get());
+					if (result == CMD::ERR_NONE) {
+						m_taskmanager.MakeTask(CMD::POST_STABILIZATION, info);
+					}
 				}
 
 			}
