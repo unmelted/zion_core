@@ -35,8 +35,8 @@ public:
 
     template <class F, class... Args>
     std::future<typename std::result_of<F(Args...)>::type> EnqueueJob(
-    F&& f, Args&&... args);
-    int MakeTask(int mode, void* arg);
+    F f, Args... args);
+    int MakeTask(int mode, shared_ptr<VIDEO_INFO> arg);
 
 private:
     size_t num_worker;
@@ -46,13 +46,16 @@ private:
     std::condition_variable cv_job;
     std::mutex m_job;
 
+    Dove* stblz;
     bool stop_all;
     void WorkerThread();
+    void RunStabilize(shared_ptr<VIDEO_INFO> arg);
+//    void RunStabilize(int a, VIDEO_INFO* info);    
 
 };
 
 template <class F, class... Args>
-std::future<typename std::result_of<F(Args...)>::type> TaskManager::EnqueueJob(F&& f, Args&&... args) {
+std::future<typename std::result_of<F(Args...)>::type> TaskManager::EnqueueJob(F f, Args... args) {
     if (stop_all) {
         throw std::runtime_error("Can't add job in ThreadPool");
     }

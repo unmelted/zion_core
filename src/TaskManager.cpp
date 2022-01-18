@@ -27,6 +27,7 @@ TaskManager::TaskManager(size_t num_worker_)
         worker.emplace_back([this]() { this->WorkerThread(); });
     }
 
+    stblz = new Dove();
 }
 
 TaskManager::~TaskManager() {
@@ -56,24 +57,35 @@ void TaskManager::WorkerThread() {
     }
 }
 
-void RunStabilize(Dove* dv)
+
+void TaskManager::RunStabilize(shared_ptr<VIDEO_INFO> arg)
 {
     printf("RunStabilize start..\n");
-    dv->Process();
-     printf("RunStabilize end..\n");    
-}
+    stblz->SetInfo(arg.get());    
+    stblz->Process();
+    //stblz->NewTest();
+    printf("RunStabilize end..\n");    
+} 
+/*
+void TaskManager::RunStabilize(int a, VIDEO_INFO* info)
+{
+    printf("test  start..\n");
+    stblz->SetInfo(info);
+    stblz->NewTest();
+//    std::this_thread::sleep_for(std::chrono::seconds(a));    
+    printf("test  %d  end..\n", a);    
+} */
 
-int TaskManager::MakeTask(int mode, void* arg) {
+
+int TaskManager::MakeTask(int mode, shared_ptr<VIDEO_INFO> arg) {
 
     if(cur_worker == TASKPOOL_SIZE)
         return CMD::TASKMANAGER_NO_MORE_WOKER;
 
     if(mode == CMD::POST_STABILIZATION) {
-        VIDEO_INFO* info = (VIDEO_INFO*)arg;
-        Dove stblz(info);
-        //EnqueueJob(RunStabilize, &stblz);
-        RunStabilize(&stblz);
-        cur_worker++;
+        EnqueueJob(&TaskManager::RunStabilize, this, arg);
+        //RunStabilize(arg);
+        //cur_worker++;
 
     }
 

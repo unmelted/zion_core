@@ -79,10 +79,13 @@ public:
     int threshold = 6;
     
     Dove(VIDEO_INFO* vinfo);
+    Dove();
     ~Dove();
+    int NewTest();
+    void SetInfo(VIDEO_INFO* vinfo);
     void Initialize();    
+    int ProcessTemp();
     int Process();
-    int ProcessTK();
     int ProcessLK();
     void ProcessChristmas();
 #if defined GPU
