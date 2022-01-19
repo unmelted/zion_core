@@ -64,6 +64,7 @@ void* MsgManager::RcvMSGThread(void* arg) {
 					ExpUtil in;
 					shared_ptr<VIDEO_INFO>info = make_shared<VIDEO_INFO>();
 					int result = in.ImportVideoInfo(msg->txt, info.get());
+			        printf(" swipe period size 0 %lu \n", info->swipe_period.size());        					
 					if (result == CMD::ERR_NONE) {
 						m_taskmanager.MakeTask(CMD::POST_STABILIZATION, info);
 					}

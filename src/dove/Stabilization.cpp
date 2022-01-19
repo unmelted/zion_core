@@ -214,37 +214,6 @@ int Dove::ProcessTemp() {
     return ERR_NONE;
 }   
 
-int Dove::NewTest() {
-    
-    dl.Logger("new test start ");    
-    std::this_thread::sleep_for(std::chrono::seconds(3));
-    VideoCapture in("movie/4dmaker_600.mp4");    
-
-    Mat src1oc; Mat src1o;
-    int frame_index = 0;
-    int swipe_index = 0;
-    int result = 0;
-    int found = 0;
-    bool final = false;
-    TRACK_OBJ* pre_obj = new TRACK_OBJ();;
-
-    TIMER* tm;
-    tm = new TIMER();    
-    StartTimer(tm);
-
-    int t_frame_start = si[swipe_index].start;
-    int t_frame_end = si[swipe_index].end;    
-    while(true) {
-        in >> src1oc;
-        if(src1oc.data == NULL)
-            break;
-        dl.Logger("Frameindex [%d] ", frame_index);
-        frame_index ++;
-    }    
-
-    dl.Logger("newtest end ..");
-}
-
 int Dove::Process() {
 
 #if defined GPU
@@ -485,7 +454,7 @@ int Dove::Process() {
 
     dl.Logger(".. %f", LapTimer(tm));
     out.release();
-    return ERR_NONE;
+    return CMD::STABIL_COMPLETE;
 }
 
 void Dove::CalculcateMargin(double minx, double maxx, double miny, double maxy, Rect* mg) {

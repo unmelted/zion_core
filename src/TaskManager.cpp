@@ -19,7 +19,7 @@
 using namespace TaskPool;
 
 TaskManager::TaskManager(size_t num_worker_) 
-    :num_worker(num_worker_), stop_all(false) {
+    :num_worker(num_worker_), stop_all(false), watching(true) {
     
     cur_worker = 0;
     worker.reserve(num_worker);
@@ -27,17 +27,28 @@ TaskManager::TaskManager(size_t num_worker_)
         worker.emplace_back([this]() { this->WorkerThread(); });
     }
 
+    watcher = new std::thread(&TaskManager::WatchFuture, this);
     stblz = new Dove();
 }
 
 TaskManager::~TaskManager() {
     printf(" stop all ? \n");
     stop_all = true;
+    watching = false;
+
     cv_job.notify_all();
 
     for (auto& t : worker) {
         t.join();
     }
+
+	if (watcher != nullptr)
+	{
+		watcher->join();
+		delete watcher;
+		watcher = nullptr;
+	}
+
 }
 
 void TaskManager::WorkerThread() {
@@ -58,24 +69,16 @@ void TaskManager::WorkerThread() {
 }
 
 
-void TaskManager::RunStabilize(shared_ptr<VIDEO_INFO> arg)
+int TaskManager::RunStabilize(shared_ptr<VIDEO_INFO> arg)
 {
+    int result = 0;
     printf("RunStabilize start..\n");
+    printf(" swipe period size 2 %lu \n", arg->swipe_period.size());
     stblz->SetInfo(arg.get());    
-    stblz->Process();
-    //stblz->NewTest();
+    result = stblz->Process();
     printf("RunStabilize end..\n");    
+    return result;
 } 
-/*
-void TaskManager::RunStabilize(int a, VIDEO_INFO* info)
-{
-    printf("test  start..\n");
-    stblz->SetInfo(info);
-    stblz->NewTest();
-//    std::this_thread::sleep_for(std::chrono::seconds(a));    
-    printf("test  %d  end..\n", a);    
-} */
-
 
 int TaskManager::MakeTask(int mode, shared_ptr<VIDEO_INFO> arg) {
 
@@ -83,11 +86,22 @@ int TaskManager::MakeTask(int mode, shared_ptr<VIDEO_INFO> arg) {
         return CMD::TASKMANAGER_NO_MORE_WOKER;
 
     if(mode == CMD::POST_STABILIZATION) {
-        EnqueueJob(&TaskManager::RunStabilize, this, arg);
-        //RunStabilize(arg);
-        //cur_worker++;
-
+        printf(" swipe period size 1 %lu \n", arg->swipe_period.size());                
+        EnqueueJob(&m_future, &TaskManager::RunStabilize, this, arg);
     }
 
     return CMD::ERR_NONE;
+}
+
+void TaskManager::WatchFuture() {
+    int result = -1;
+
+    while(watching) {
+        if (m_future.IsQueue()) {
+            auto f = m_future.Dequeue();
+            printf(" result : %d \n", f);
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));        
+    }
+
 }

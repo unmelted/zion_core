@@ -41,7 +41,7 @@ int ExpUtil::ImportVideoInfo(const string js, VIDEO_INFO* info) {
     info->width = j["width"];
     info->height = j["height"];
 
-    for(auto& elm : j["SwipePeriod"]) {
+    for(auto& elm : j["swipeperiod"]) {
         SWIPE_INFO swi;
         swi.order = elm["no"];
         swi.start = elm["start"];

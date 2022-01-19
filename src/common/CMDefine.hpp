@@ -24,7 +24,7 @@ typedef enum _cmerr {
     TASKMANAGER_NO_MORE_WOKER      = 10,
     STABIL_INFO_ERROR_NO_VIDEOFILE = 100, //stabil
     STABIL_INFO_ERROR_NO_SWIPE     = 101,
-
+    STABIL_COMPLETE                = 199,
 } CMD_ERR;
 
 typedef enum _cmdmode {
