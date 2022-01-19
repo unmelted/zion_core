@@ -23,6 +23,7 @@
 #include <thread>
 #include <vector>
 #include "CMDefine.hpp"
+#include "DMServer.h"
 #include "json.hpp"
 #include "MessageQueue.h"
 #include "Stabilization.hpp"
@@ -56,7 +57,7 @@ private:
     void WorkerThread();
     void WatchFuture();
     int RunStabilize(shared_ptr<VIDEO_INFO> arg);
-    void MakeSendMsg(int result);
+    void MakeSendMsg(std::shared_ptr<CMD::MSG_T> ptrMsg, int result);
 };
 
 } //namespace

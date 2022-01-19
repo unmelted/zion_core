@@ -114,10 +114,9 @@ void TaskManager::WatchFuture() {
     int result = -1;
 
     while(watching) {
-        if (m_future.IsQueue()) {
-            auto f = m_future.Dequeue();
-            printf(" result : %d \n", f);
-        }
+        if (m_future.IsQueue()) 
+            MakeSendMsg(m_qTMSG.Dequeue(),  m_future.Dequeue());
+
         std::this_thread::sleep_for(std::chrono::milliseconds(10));        
     }
 
@@ -127,6 +126,9 @@ void TaskManager::OnRcvTask(std::shared_ptr<CMD::MSG_T> ptrMsg) {
 	m_qTMSG.Enqueue(ptrMsg);
 }
 
-void TaskManager::MakeSendMsg(int result) {
+void TaskManager::MakeSendMsg(std::shared_ptr<CMD::MSG_T> ptrMsg, int result) {
 
+    printf("Make Send MSG is called \n ");
+    cout<< ptrMsg<< endl;
+    cout<< result << endl;;
 }

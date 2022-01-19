@@ -36,14 +36,17 @@ public:
     MsgManager();
     ~MsgManager();
 	void OnRcvMessage(char* pData);
+	void SetDMServer(DMServer* dmServer);
+	DMServer* GetDMServer();
 
 private :
+	DMServer* m_dmServer;
     bool b_RMSGThread;
 	std::thread* m_pRMSGThread{ nullptr };
     bool b_SMSGThread;
 	std::thread* m_pSMSGThread{ nullptr };
 	MessageQueue<std::shared_ptr<CMD::MSG_T>> m_qRMSG;
-	MessageQueue<std::shared_ptr<CMD::SEND_PACKET>> m_qSMSG;    
+	MessageQueue<std::shared_ptr<std::string>> m_qSMSG;    
 
 	TaskPool::TaskManager m_taskmanager;
     void* RcvMSGThread(void* arg);

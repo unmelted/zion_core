@@ -27,6 +27,16 @@ MsgManager::MsgManager()
 	m_pSMSGThread = new std::thread(&MsgManager::SndMSGThread, this, this);	
 } 
 
+
+DMServer* MsgManager::GetDMServer() {
+	return m_dmServer;
+}
+
+
+void MsgManager::SetDMServer(DMServer* dmServer) {
+	m_dmServer = dmServer;
+}
+
 MsgManager::~MsgManager() {
 
 	b_RMSGThread = false;
@@ -90,11 +100,12 @@ void MsgManager::OnRcvMessage(char* pData) {
 
 void* MsgManager::SndMSGThread(void* arg) {
 
-	while(b_SMSGThread)
-	{
-		if (m_qSMSG.IsQueue())
-		{
-				//m_ctrl_client.SendPacket(pkt->payload);
+	std::shared_ptr<std::string> msg = nullptr;
+	while(b_SMSGThread) {
+
+		if (m_qSMSG.IsQueue()) {
+			msg = m_qSMSG.Dequeue();		
+			GetDMServer()->SendData(msg->c_str());
 		}
 		std::this_thread::sleep_for(std::chrono::milliseconds(3));
 	}
