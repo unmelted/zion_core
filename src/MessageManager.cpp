@@ -20,11 +20,13 @@
 using json = nlohmann::json;
 
 MsgManager::MsgManager()
-	: m_taskmanager(TASKPOOL_SIZE) {
+	: m_taskmanager(TASKPOOL_SIZE, this) {
     b_RMSGThread = true;
     b_SMSGThread = true;		
 	m_pRMSGThread = new std::thread(&MsgManager::RcvMSGThread, this, this);
 	m_pSMSGThread = new std::thread(&MsgManager::SndMSGThread, this, this);	
+	std::function<void(MsgManager&, const std::string msg)> f1 = &MsgManager::OnRcvSndMessage;
+	m_taskmanager.SetSndQue(f1);
 } 
 
 
@@ -98,6 +100,12 @@ void MsgManager::OnRcvMessage(char* pData) {
 
 }
 
+void MsgManager::OnRcvSndMessage(std::string msg) {
+	cout << "OnRcvSndMessage : " << msg << endl;
+	std::shared_ptr<std::string> pmsg = make_shared<std::string>(msg);
+	m_qSMSG.Enqueue(pmsg);
+}
+
 void* MsgManager::SndMSGThread(void* arg) {
 
 	std::shared_ptr<std::string> msg = nullptr;
@@ -105,6 +113,7 @@ void* MsgManager::SndMSGThread(void* arg) {
 
 		if (m_qSMSG.IsQueue()) {
 			msg = m_qSMSG.Dequeue();		
+			cout << " SndMsg thread msg : "<< msg->c_str()<<endl;
 			GetDMServer()->SendData(msg->c_str());
 		}
 		std::this_thread::sleep_for(std::chrono::milliseconds(3));

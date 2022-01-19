@@ -238,11 +238,13 @@ int Dove::Process() {
     TIMER* tm;
     tm = new TIMER();    
     StartTimer(tm);
-    dl.Logger("Check..  ");
+
     dl.Logger("si %d %d   ",si[swipe_index].start, si[swipe_index].end);     
     int t_frame_start = si[swipe_index].start;
     int t_frame_end = si[swipe_index].end;
-     dl.Logger(" check.. 2 ");
+    //test terminate
+    return STABIL_COMPLETE;
+    
     while(true) {
          dl.Logger(" check.. 3 ");
 #if defined GPU
@@ -454,7 +456,7 @@ int Dove::Process() {
 
     dl.Logger(".. %f", LapTimer(tm));
     out.release();
-    return CMD::STABIL_COMPLETE;
+    return STABIL_COMPLETE;
 }
 
 void Dove::CalculcateMargin(double minx, double maxx, double miny, double maxy, Rect* mg) {

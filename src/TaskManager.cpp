@@ -15,12 +15,15 @@
 */
 
 #include "TaskManager.hpp"
+#include "MessageManager.hpp"
 
 using namespace TaskPool;
+using namespace rapidjson;
 
-TaskManager::TaskManager(size_t num_worker_) 
+TaskManager::TaskManager(size_t num_worker_, MsgManager* a) 
     :num_worker(num_worker_), stop_all(false), watching(true) {
     
+    m_msgmanager = a;
     cur_worker = 0;
     worker.reserve(num_worker);
     for (size_t i = 0; i < num_worker; ++i) {
@@ -80,9 +83,6 @@ void TaskManager::WorkerThread() {
         jobs.pop();
         lock.unlock();
         job();
-
-        //std::this_thread::sleep_for(std::chrono::milliseconds(3));                
-
     }
 }
 
@@ -111,7 +111,6 @@ int TaskManager::CommandTask(int mode, shared_ptr<VIDEO_INFO> arg) {
 }
 
 void TaskManager::WatchFuture() {
-    int result = -1;
 
     while(watching) {
         if (m_future.IsQueue()) 
@@ -126,9 +125,40 @@ void TaskManager::OnRcvTask(std::shared_ptr<CMD::MSG_T> ptrMsg) {
 	m_qTMSG.Enqueue(ptrMsg);
 }
 
+std::string TaskManager::GetDocumentToString(Document& document)
+{
+	StringBuffer strbuf;
+	strbuf.Clear();
+	PrettyWriter<StringBuffer> writer(strbuf);
+	document.Accept(writer);
+	std::string ownShipRadarString = strbuf.GetString();
+
+	return ownShipRadarString;
+}
+
 void TaskManager::MakeSendMsg(std::shared_ptr<CMD::MSG_T> ptrMsg, int result) {
 
     printf("Make Send MSG is called \n ");
+    if(result <  CMD::ERR_NONE) 
+        return;
+
     cout<< ptrMsg<< endl;
     cout<< result << endl;;
+    Document sndDoc(kObjectType);
+    Document::AllocatorType& allocator = sndDoc.GetAllocator();
+
+    if( result == CMD::STABIL_COMPLETE){
+        nlohmann::json j = nlohmann::json::parse(ptrMsg->txt);
+        std::string outfile = j["output"];
+        sndDoc.AddMember(MTDPROTOCOL_SECTION1, "4DReplay", allocator);
+        sndDoc.AddMember(MTDPROTOCOL_SECTION2, "CM", allocator);
+        sndDoc.AddMember(MTDPROTOCOL_SECTION3, "StabilizeDone", allocator);
+        sndDoc.AddMember(MTDPROTOCOL_TOKEN, "", allocator); // token..
+        sndDoc.AddMember(MTDPROTOCOL_FROM, "CMd", allocator);
+        sndDoc.AddMember(MTDPROTOCOL_TO, "4DPD", allocator);
+        sndDoc.AddMember("output", outfile, allocator);
+    }
+    
+    std::string strSendString = GetDocumentToString(sndDoc);
+    m_msgmanager->OnRcvSndMessage(strSendString);
 }

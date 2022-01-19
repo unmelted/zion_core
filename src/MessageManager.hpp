@@ -13,20 +13,8 @@
     Description     : MessageManager for socket transfer
     Notes           : 
 */
-
-#include <thread>
-#include <algorithm>
-#include <iostream>
-#include <queue>
-#include <deque>
-#include <string>
-#include <iostream>
-#include <set>
-#include <cstdint>
-#include <map>
-#include <string>
-
-
+#pragma once 
+#include "CMDefine.hpp"
 #include "TaskManager.hpp"
 
 class MsgManager {
@@ -36,6 +24,7 @@ public:
     MsgManager();
     ~MsgManager();
 	void OnRcvMessage(char* pData);
+	void OnRcvSndMessage(std::string);
 	void SetDMServer(DMServer* dmServer);
 	DMServer* GetDMServer();
 
@@ -51,5 +40,4 @@ private :
 	TaskPool::TaskManager m_taskmanager;
     void* RcvMSGThread(void* arg);
     void* SndMSGThread(void* arg);
-	void MakeSendMsg();
 };
