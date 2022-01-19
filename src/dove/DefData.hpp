@@ -32,7 +32,9 @@
 #include <string.h>
 #include <vector>
 #include <algorithm>
-#include "common/TimeUtil.hpp"
+#include "TimeUtil.hpp"
+#include "CMDefine.hpp"
+
 #if defined _MAC_
 #include "darknet/yolo_v2_class.hpp"
 #define LOCAL_TEST

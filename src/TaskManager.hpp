@@ -22,8 +22,10 @@
 #include <queue>
 #include <thread>
 #include <vector>
-
 #include "CMDefine.hpp"
+#include "DMServer.h"
+#include "json.hpp"
+#include "MessageQueue.h"
 #include "Stabilization.hpp"
 
 namespace TaskPool {
@@ -34,41 +36,28 @@ public:
     ~TaskManager();
 
     template <class F, class... Args>
-    std::future<typename std::result_of<F(Args...)>::type> EnqueueJob(
-    F f, Args... args);
-    int MakeTask(int mode, shared_ptr<VIDEO_INFO> arg);
+    void EnqueueJob( MessageQueue<int>* fu, F&& f, Args&&... args);
+    void OnRcvTask(std::shared_ptr<CMD::MSG_T>pData);
+    int CommandTask(int mode, shared_ptr<VIDEO_INFO> arg);
 
 private:
     size_t num_worker;
     size_t cur_worker;
     std::vector<std::thread> worker;
+    std::thread* watcher{ nullptr };
     std::queue<std::function<void()>> jobs;
     std::condition_variable cv_job;
     std::mutex m_job;
+    MessageQueue<int> m_future;
+    MessageQueue<std::shared_ptr<CMD::MSG_T>> m_qTMSG;    
 
     Dove* stblz;
     bool stop_all;
+    bool watching;
     void WorkerThread();
-    void RunStabilize(shared_ptr<VIDEO_INFO> arg);
-//    void RunStabilize(int a, VIDEO_INFO* info);    
-
+    void WatchFuture();
+    int RunStabilize(shared_ptr<VIDEO_INFO> arg);
+    void MakeSendMsg(std::shared_ptr<CMD::MSG_T> ptrMsg, int result);
 };
-
-template <class F, class... Args>
-std::future<typename std::result_of<F(Args...)>::type> TaskManager::EnqueueJob(F f, Args... args) {
-    if (stop_all) {
-        throw std::runtime_error("Can't add job in ThreadPool");
-    }
-    
-    using return_type = typename std::result_of<F(Args...)>::type;
-    auto job = std::make_shared<std::packaged_task<return_type()>>(std::bind(std::forward<F>(f), std::forward<Args>(args)...));
-    std::future<return_type> job_result_future = job->get_future();
-    {
-        std::lock_guard<std::mutex> lock(m_job);
-        jobs.push([job]() { (*job)(); });
-    }
-    cv_job.notify_one();
-    return job_result_future;
-}
 
 } //namespace

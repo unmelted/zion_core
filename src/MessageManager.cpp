@@ -27,6 +27,16 @@ MsgManager::MsgManager()
 	m_pSMSGThread = new std::thread(&MsgManager::SndMSGThread, this, this);	
 } 
 
+
+DMServer* MsgManager::GetDMServer() {
+	return m_dmServer;
+}
+
+
+void MsgManager::SetDMServer(DMServer* dmServer) {
+	m_dmServer = dmServer;
+}
+
 MsgManager::~MsgManager() {
 
 	b_RMSGThread = false;
@@ -49,12 +59,13 @@ MsgManager::~MsgManager() {
 void* MsgManager::RcvMSGThread(void* arg) {
 	printf("RcvMsgThread start \n");
 
-	std::shared_ptr<MSG_T> msg = nullptr;
+	std::shared_ptr<CMD::MSG_T> msg = nullptr;
 	while(b_RMSGThread)
 	{
 		if (m_qRMSG.IsQueue())
 		{
-			msg = m_qRMSG.Dequeue();			
+			msg = m_qRMSG.Dequeue();	
+			m_taskmanager.OnRcvTask(msg);
 			if (msg != nullptr)
 			{
 				cout << "RcvMSGThread : " << msg->txt<< endl;
@@ -64,8 +75,9 @@ void* MsgManager::RcvMSGThread(void* arg) {
 					ExpUtil in;
 					shared_ptr<VIDEO_INFO>info = make_shared<VIDEO_INFO>();
 					int result = in.ImportVideoInfo(msg->txt, info.get());
+			        printf(" swipe period size 0 %lu \n", info->swipe_period.size());        					
 					if (result == CMD::ERR_NONE) {
-						m_taskmanager.MakeTask(CMD::POST_STABILIZATION, info);
+						m_taskmanager.CommandTask(CMD::POST_STABILIZATION, info);
 					}
 				}
 
@@ -79,24 +91,21 @@ void* MsgManager::RcvMSGThread(void* arg) {
 
 void MsgManager::OnRcvMessage(char* pData) {
 
-	std::shared_ptr<MsgManager::MSG_T> ptrMsg = std::shared_ptr<MsgManager::MSG_T>(new MsgManager::MSG_T);
-	ptrMsg->type = MsgManager::PACKET_TYPE::TEXT;
+	std::shared_ptr<CMD::MSG_T> ptrMsg = std::shared_ptr<CMD::MSG_T>(new CMD::MSG_T);
+	ptrMsg->type = CMD::PACKET_TYPE::TEXT;
 	ptrMsg->txt = pData;		
 	m_qRMSG.Enqueue(ptrMsg);
 
 }
 
-void MsgManager::MakeSendMsg() {
-
-}
-
 void* MsgManager::SndMSGThread(void* arg) {
 
-	while(b_SMSGThread)
-	{
-		if (m_qSMSG.IsQueue())
-		{
-				//m_ctrl_client.SendPacket(pkt->payload);
+	std::shared_ptr<std::string> msg = nullptr;
+	while(b_SMSGThread) {
+
+		if (m_qSMSG.IsQueue()) {
+			msg = m_qSMSG.Dequeue();		
+			GetDMServer()->SendData(msg->c_str());
 		}
 		std::this_thread::sleep_for(std::chrono::milliseconds(3));
 	}

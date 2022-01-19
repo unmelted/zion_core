@@ -81,7 +81,6 @@ public:
     Dove(VIDEO_INFO* vinfo);
     Dove();
     ~Dove();
-    int NewTest();
     void SetInfo(VIDEO_INFO* vinfo);
     void Initialize();    
     int ProcessTemp();
