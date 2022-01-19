@@ -13,32 +13,26 @@
     Description     : TaskManager
     Notes           : 
 */
-#include <chrono>
-#include <condition_variable>
-#include <cstdio>
-#include <functional>
-#include <future>
-#include <mutex>
-#include <queue>
-#include <thread>
-#include <vector>
-#include "CMDefine.hpp"
-#include "DMServer.h"
-#include "json.hpp"
-#include "MessageQueue.h"
-#include "Stabilization.hpp"
+#pragma once
 
+#include "CMDefine.hpp"
+class MsgManager;
+
+using namespace rapidjson;
 namespace TaskPool {
 class TaskManager {
 
 public:
-    TaskManager(size_t num_worker_);
+    TaskManager(size_t num_worker_, MsgManager* a);
     ~TaskManager();
 
     template <class F, class... Args>
     void EnqueueJob( MessageQueue<int>* fu, F&& f, Args&&... args);
     void OnRcvTask(std::shared_ptr<CMD::MSG_T>pData);
     int CommandTask(int mode, shared_ptr<VIDEO_INFO> arg);
+    void SetSndQue(std::function<void(MsgManager&, const std::string msg)> que) {
+        fSendQue = que;
+    };
 
 private:
     size_t num_worker;
@@ -50,7 +44,9 @@ private:
     std::mutex m_job;
     MessageQueue<int> m_future;
     MessageQueue<std::shared_ptr<CMD::MSG_T>> m_qTMSG;    
+    std::function<void(MsgManager&, const std::string msg)>fSendQue;
 
+    MsgManager* m_msgmanager;
     Dove* stblz;
     bool stop_all;
     bool watching;
@@ -58,6 +54,8 @@ private:
     void WatchFuture();
     int RunStabilize(shared_ptr<VIDEO_INFO> arg);
     void MakeSendMsg(std::shared_ptr<CMD::MSG_T> ptrMsg, int result);
+
+    std::string GetDocumentToString(Document& document);
 };
 
 } //namespace

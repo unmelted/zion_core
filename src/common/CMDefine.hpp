@@ -15,9 +15,36 @@
 */
 
 #pragma once 
+#include <chrono>
+#include <condition_variable>
+#include <cstdio>
+#include <functional>
+#include <future>
+#include <mutex>
+#include <queue>
+#include <thread>
+#include <vector>
+#include <algorithm>
+#include <iostream>
+#include <deque>
+#include <string>
+#include <set>
+#include <cstdint>
+#include <map>
+
+#define RAPIDJSON_HAS_STDSTRING 1
+#include <rapidjson/document.h>
+#include <rapidjson/writer.h>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/prettywriter.h>
+#include "DMServer.h"
+#include "DaemonDefine.h"
+#include "json.hpp"
+#include "MessageQueue.h"
+#include "Stabilization.hpp"
+
 
 #define TASKPOOL_SIZE 3
-
 namespace CMD {
 typedef enum _cmerr {
     ERR_NONE = 0,

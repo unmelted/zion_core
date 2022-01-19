@@ -33,7 +33,6 @@
 #include <vector>
 #include <algorithm>
 #include "TimeUtil.hpp"
-#include "CMDefine.hpp"
 
 #if defined _MAC_
 #include "darknet/yolo_v2_class.hpp"
@@ -63,6 +62,7 @@ typedef enum _err {
     ERR_NONE = 0,
     
     EXECUTE_CLIENT_EXCEPTION    = -30,
+    STABIL_COMPLETE             = 199,
 } ERR;
 
 typedef enum _event {
