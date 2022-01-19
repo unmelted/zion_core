@@ -36,7 +36,8 @@ public:
 
     template <class F, class... Args>
     void EnqueueJob( MessageQueue<int>* fu, F&& f, Args&&... args);
-    int MakeTask(int mode, shared_ptr<VIDEO_INFO> arg);
+    void OnRcvTask(std::shared_ptr<CMD::MSG_T>pData);
+    int CommandTask(int mode, shared_ptr<VIDEO_INFO> arg);
 
 private:
     size_t num_worker;
@@ -47,6 +48,7 @@ private:
     std::condition_variable cv_job;
     std::mutex m_job;
     MessageQueue<int> m_future;
+    MessageQueue<std::shared_ptr<CMD::MSG_T>> m_qTMSG;    
 
     Dove* stblz;
     bool stop_all;
@@ -54,25 +56,7 @@ private:
     void WorkerThread();
     void WatchFuture();
     int RunStabilize(shared_ptr<VIDEO_INFO> arg);
-
+    void MakeSendMsg(int result);
 };
-
-template <class F, class... Args>
-void TaskManager::EnqueueJob(MessageQueue<int>* fu, F&& f, Args&&... args) {
-    if (stop_all) {
-        throw std::runtime_error("Can't add job in ThreadPool");
-    }
-    
-    using return_type = typename std::result_of<F(Args...)>::type;
-    auto job = std::make_shared<std::packaged_task<return_type()>>(std::bind(std::forward<F>(f), std::forward<Args>(args)...));
-    std::future<return_type> job_result_future = job->get_future();
-    {
-        std::lock_guard<std::mutex> lock(m_job);
-        jobs.push([job]() { (*job)(); });
-    }
-    cv_job.notify_one();
-    fu->Enqueue(job_result_future.get());
-//    return job_result_future;
-}
 
 } //namespace

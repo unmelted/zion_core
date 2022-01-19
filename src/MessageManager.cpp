@@ -49,12 +49,13 @@ MsgManager::~MsgManager() {
 void* MsgManager::RcvMSGThread(void* arg) {
 	printf("RcvMsgThread start \n");
 
-	std::shared_ptr<MSG_T> msg = nullptr;
+	std::shared_ptr<CMD::MSG_T> msg = nullptr;
 	while(b_RMSGThread)
 	{
 		if (m_qRMSG.IsQueue())
 		{
-			msg = m_qRMSG.Dequeue();			
+			msg = m_qRMSG.Dequeue();	
+			m_taskmanager.OnRcvTask(msg);
 			if (msg != nullptr)
 			{
 				cout << "RcvMSGThread : " << msg->txt<< endl;
@@ -66,7 +67,7 @@ void* MsgManager::RcvMSGThread(void* arg) {
 					int result = in.ImportVideoInfo(msg->txt, info.get());
 			        printf(" swipe period size 0 %lu \n", info->swipe_period.size());        					
 					if (result == CMD::ERR_NONE) {
-						m_taskmanager.MakeTask(CMD::POST_STABILIZATION, info);
+						m_taskmanager.CommandTask(CMD::POST_STABILIZATION, info);
 					}
 				}
 
@@ -80,14 +81,10 @@ void* MsgManager::RcvMSGThread(void* arg) {
 
 void MsgManager::OnRcvMessage(char* pData) {
 
-	std::shared_ptr<MsgManager::MSG_T> ptrMsg = std::shared_ptr<MsgManager::MSG_T>(new MsgManager::MSG_T);
-	ptrMsg->type = MsgManager::PACKET_TYPE::TEXT;
+	std::shared_ptr<CMD::MSG_T> ptrMsg = std::shared_ptr<CMD::MSG_T>(new CMD::MSG_T);
+	ptrMsg->type = CMD::PACKET_TYPE::TEXT;
 	ptrMsg->txt = pData;		
 	m_qRMSG.Enqueue(ptrMsg);
-
-}
-
-void MsgManager::MakeSendMsg() {
 
 }
 

@@ -51,6 +51,24 @@ TaskManager::~TaskManager() {
 
 }
 
+template <class F, class... Args>
+void TaskManager::EnqueueJob(MessageQueue<int>* fu, F&& f, Args&&... args) {
+    if (stop_all) {
+        throw std::runtime_error("Can't add job in ThreadPool");
+    }
+    
+    using return_type = typename std::result_of<F(Args...)>::type;
+    auto job = std::make_shared<std::packaged_task<return_type()>>(std::bind(std::forward<F>(f), std::forward<Args>(args)...));
+    std::future<return_type> job_result_future = job->get_future();
+    {
+        std::lock_guard<std::mutex> lock(m_job);
+        jobs.push([job]() { (*job)(); });
+    }
+    cv_job.notify_one();
+    fu->Enqueue(job_result_future.get());
+//    return job_result_future;
+}
+
 void TaskManager::WorkerThread() {
     while (true) {
         std::unique_lock<std::mutex> lock(m_job);
@@ -68,10 +86,9 @@ void TaskManager::WorkerThread() {
     }
 }
 
-
 int TaskManager::RunStabilize(shared_ptr<VIDEO_INFO> arg)
 {
-    int result = 0;
+    int result = -1;
     printf("RunStabilize start..\n");
     printf(" swipe period size 2 %lu \n", arg->swipe_period.size());
     stblz->SetInfo(arg.get());    
@@ -80,7 +97,7 @@ int TaskManager::RunStabilize(shared_ptr<VIDEO_INFO> arg)
     return result;
 } 
 
-int TaskManager::MakeTask(int mode, shared_ptr<VIDEO_INFO> arg) {
+int TaskManager::CommandTask(int mode, shared_ptr<VIDEO_INFO> arg) {
 
     if(cur_worker == TASKPOOL_SIZE)
         return CMD::TASKMANAGER_NO_MORE_WOKER;
@@ -103,5 +120,13 @@ void TaskManager::WatchFuture() {
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(10));        
     }
+
+}
+
+void TaskManager::OnRcvTask(std::shared_ptr<CMD::MSG_T> ptrMsg) {
+	m_qTMSG.Enqueue(ptrMsg);
+}
+
+void TaskManager::MakeSendMsg(int result) {
 
 }
