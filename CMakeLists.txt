@@ -35,8 +35,6 @@ set(PRJ_PATH        ${CMAKE_CURRENT_SOURCE_DIR})
 set(ZL_INCLUDE_DIR      ${PRJ_PATH}/3rd/ZLToolKit/include)
 set(ZL_LIB              ${PRJ_PATH}/3rd/ZLToolKit/lib/libZLToolKit.dylib)
 set(RJSON_INCLUDE_DIR   ${PRJ_PATH}/3rd/rapidjson)
-set(SPDLOG_INCLUDE_DIR  ${PRJ_PATH}/3rd/spdlog/include)
-set(SPDLOG_LIB          ${PRJ_PATH}/3rd/spdlog/lib/libspdlog.a)
 set(DARKNET_PATH        ${PRJ_PATH}/3rd/darknet)
 set(DARKNET_LIB         ${DARKNET_PATH}/libdarknet.dylib)
 
@@ -55,8 +53,7 @@ file(GLOB PRJ_INC      ${PRJ_PATH}/src/*.hpp
 )
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-include_directories(${GSL_INCLUDE_DIR} ${PRJ_INC} ${OpenCV_INCLUDE_DIRS} ${ZL_INCLUDE_DIR} ${SPDLOG_INCLUDE_DIR})
-message(${SPDLOG_INCLUDE_DIR})
+include_directories(${GSL_INCLUDE_DIR} ${PRJ_INC} ${OpenCV_INCLUDE_DIRS} ${ZL_INCLUDE_DIR} )
 message(${OpenCV_INCLUDE_DIRS})
 add_executable(zion ${PRJ_SRC})
 target_link_libraries(zion PRIVATE spdlog::spdlog ${GSL_LIB_DIR} ${ZL_LIB} ${OpenCV_LIBS}  ${DARKNET_LIB} )
