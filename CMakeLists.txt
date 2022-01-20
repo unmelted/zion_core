@@ -8,7 +8,7 @@ cmake_minimum_required(VERSION 3.7)
 
 project(zion)
 set (PLATFROM MAC) # available : WIN, ARM, LINUX
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 find_package( OpenCV REQUIRED )
 
 set(CMAKE_CXX_FLAGS "-Wno-invalid-source-encoding -Wno-deprecated-register -Wno-writable-strings -Wno-parentheses -I3rd/ -Isrc/ -Isrc/daemon/ -Isrc/common/ -Isrc/darknet -Isrc/dove -O2 -g")
@@ -30,6 +30,7 @@ set(PRJ_PATH        ${CMAKE_CURRENT_SOURCE_DIR})
 set(ZL_INCLUDE_DIR  ${PRJ_PATH}/3rd/ZLToolKit/include)
 set(ZL_LIB_DIR      ${PRJ_PATH}/3rd/ZLToolKit/lib/libZLToolKit.dylib)
 set(RJSON_INCLUDE_DIR ${PRJ_PATH}/3rd/rapidjson)
+set(SPDLOG_INCLUDE_DIR ${PRJ_PATH}/3rd/spdlog/include)
 set(DARKNET_PATH    ${PRJ_PATH}/3rd/darknet)
 set(DARKNET_LIB      ${DARKNET_PATH}/libdarknet.dylib)
 
@@ -48,8 +49,8 @@ file(GLOB PRJ_INC      ${PRJ_PATH}/src/*.hpp
 )
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-include_directories(${GSL_INCLUDE_DIR} ${PRJ_INC} ${OpenCV_INCLUDE_DIRS} ${ZL_INCLUDE_DIR})
-#message(${PRJ_INC})
+include_directories(${GSL_INCLUDE_DIR} ${PRJ_INC} ${OpenCV_INCLUDE_DIRS} ${ZL_INCLUDE_DIR} ${SPDLOG_INCLUDE_DIR})
+message(${SPDLOG_INCLUDE_DIR})
 message(${OpenCV_INCLUDE_DIRS})
 add_executable(zion ${PRJ_SRC})
 target_link_libraries(zion ${GSL_LIB_DIR} ${ZL_LIB_DIR} ${OpenCV_LIBS}  ${DARKNET_LIB})

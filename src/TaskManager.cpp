@@ -150,10 +150,13 @@ void TaskManager::MakeSendMsg(std::shared_ptr<CMD::MSG_T> ptrMsg, int result) {
     if( result == CMD::STABIL_COMPLETE){
         nlohmann::json j = nlohmann::json::parse(ptrMsg->txt);
         std::string outfile = j["output"];
+        std::string str_token = Configurator::Get().GenerateToken();
+        printf(" generated token %s ", str_token.c_str());
+
         sndDoc.AddMember(MTDPROTOCOL_SECTION1, "4DReplay", allocator);
         sndDoc.AddMember(MTDPROTOCOL_SECTION2, "CM", allocator);
         sndDoc.AddMember(MTDPROTOCOL_SECTION3, "StabilizeDone", allocator);
-        sndDoc.AddMember(MTDPROTOCOL_TOKEN, "", allocator); // token..
+        sndDoc.AddMember(MTDPROTOCOL_TOKEN, str_token, allocator); // token..
         sndDoc.AddMember(MTDPROTOCOL_FROM, "CMd", allocator);
         sndDoc.AddMember(MTDPROTOCOL_TO, "4DPD", allocator);
         sndDoc.AddMember("output", outfile, allocator);
