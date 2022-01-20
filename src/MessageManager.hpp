@@ -36,8 +36,10 @@ private :
 	std::thread* m_pSMSGThread{ nullptr };
 	MessageQueue<std::shared_ptr<CMD::MSG_T>> m_qRMSG;
 	MessageQueue<std::shared_ptr<std::string>> m_qSMSG;    
+	CMdLogger _logger;	
 
 	TaskPool::TaskManager m_taskmanager;
     void* RcvMSGThread(void* arg);
     void* SndMSGThread(void* arg);
+
 };

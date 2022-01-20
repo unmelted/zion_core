@@ -42,7 +42,7 @@ CMdLogger::CMdLogger()
 
 CMdLogger::~CMdLogger()
 {
-	CMD_INFO("Logger End!");
+	CMd_INFO("Logger End!");
 }
 
 void CMdLogger::Init()
@@ -53,7 +53,7 @@ void CMdLogger::Init()
 	auto console_link = std::make_shared<spdlog::sinks::dist_sink_mt>();
 	console_link->add_sink(console_link);
 
-	std::string fileName("logs/cmd-");
+	std::string fileName("log/cmd-");
 	fileName += Configurator::Get().getCurrentDateTime("date") + ".txt";
 
 	auto file_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(fileName, 1024 * 1000 * 10, 10);
@@ -91,5 +91,6 @@ void CMdLogger::Init()
 	//       You can't get proper log files without it because spdlog doesn't support the multiple process.
 
 	spdlog::set_default_logger(_logger);
-	spdlog::set_pattern("[%Y-%m-%d %X.%e] [PID:%P] [thread %t] [%^%l%$] [%s:%#] - %v");
+	//spdlog::set_pattern("[%Y-%m-%d %X.%e] [PID:%P] [thread %t] [%^%l%$] [%s:%#] - %v");
+	spdlog::set_pattern("[%Y-%m-%d %X.%e] [%^%l%$] [%s:%#] - %v");	
 }
