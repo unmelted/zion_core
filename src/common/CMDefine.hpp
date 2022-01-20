@@ -41,6 +41,7 @@
 #include "DaemonDefine.h"
 #include "json.hpp"
 #include "MessageQueue.h"
+#include "Configurator.hpp"
 #include "Stabilization.hpp"
 
 

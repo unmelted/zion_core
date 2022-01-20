@@ -19,6 +19,8 @@ DaemonMgr::DaemonMgr()
 	m_dmServer.BeginSocket(CM_CONTROL_DAEMON_PORT, 0);
 	m_dmServer.setHandler(std::bind(&DaemonMgr::Classfication, this, std::placeholders::_1, placeholders::_2, placeholders::_3));
 	m_manger.SetDMServer(&m_dmServer);	
+
+//	Configurator::SetDirectory();
 }
 
 DaemonMgr::~DaemonMgr()
