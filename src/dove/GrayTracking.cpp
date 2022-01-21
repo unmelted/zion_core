@@ -42,7 +42,7 @@ void GrayTracking::SetBg(Mat& src, int frame_id) {
     // }
 
     cv::minMaxLoc(hist, &minval, &maxval, &minloc, &maxloc, Mat());
-    dl.Logger("searched minval %f maxval %f minloc %d %d maxloc %d %d", minval, maxval, minloc.x, minloc.y, maxloc.x, maxloc.y);
+    CMd_INFO("searched minval {} maxval {} minloc {} {} maxloc {} [}", minval, maxval, minloc.x, minloc.y, maxloc.x, maxloc.y);
     cut_threshold = maxloc.y * 0.83;
     lut = Mat::zeros(1, histbin, CV_8UC1);
     for (int i = 0 ; i < histbin; i ++){
@@ -62,7 +62,7 @@ void GrayTracking::SetBg(Mat& src, int frame_id) {
     clahe->apply(result, temp);
     GaussianBlur(temp, bg, {3, 3}, 1.3, 1.3);
     imwrite("cpu_bg.png", bg);
-    dl.Logger("Setbg function finish %d %d ", bg.cols, bg.rows);
+    CMd_DEBUG("Setbg function finish {} [}] ", bg.cols, bg.rows);
 }
 
 void GrayTracking::ImageProcess(Mat& src, Mat& dst) {
@@ -104,12 +104,12 @@ void GrayTracking::SetBg(cuda::GpuMat& src, int frame_id) {
     bgg.download(check);
     calcHist(&check, 1, 0, Mat(), hist_t, 1, &histbin, 0);
     for (int i = 0 ; i < histbin; i ++){
-        dl.Logger(" [%d] hist_t %d \n", i , (int)hist_t.at<float>(i));
+        CMd_DEBUG(" [{}] hist_t {} \n", i , (int)hist_t.at<float>(i));
     }
 
     cuda::calcHist(bgg, hist, cuda::Stream::Null());
     cuda::minMaxLoc(hist, &minval, &maxval, &minloc, &maxloc, noArray());
-    dl.Logger("searched minval %f maxval %f minloc %d %d maxloc %d %d", minval, maxval, minloc.x, minloc.y, maxloc.x, maxloc.y);
+    CMd_DEBUG("searched minval {} maxval {} minloc {} {} maxloc {} [}", minval, maxval, minloc.x, minloc.y, maxloc.x, maxloc.y);
     cut_threshold = maxloc.x * 0.83;
     lut = Mat::zeros(1, histbin, CV_8UC1);
     for (int i = 0 ; i < histbin; i ++){
@@ -137,7 +137,7 @@ void GrayTracking::SetBg(cuda::GpuMat& src, int frame_id) {
     
     bgg.download(check);
     imwrite("gpu_bg2.png", check);
-    dl.Logger("Setbg function finish %d %d ", bg.cols, bg.rows);
+    CMd_DEBUG("Setbg function finish {} {} ", bg.cols, bg.rows);
 }
 
 void GrayTracking::ImageProcess(cuda::GpuMat& src, cuda::GpuMat& dst) {
@@ -174,12 +174,12 @@ int GrayTracking::TrackerInit(cuda::GpuMat& src, int index, TRACK_OBJ* obj, TRAC
     Mat cur_check;
     cur.download(cur_check);
     imwrite("tracker_init.png", cur_check);
-    dl.Logger("PickArea cos/row %d %d st_frame %d index %d", cur.cols, cur.rows, start_frame, index);
+    CMd_DEBUG("PickArea cos/row {} {} st_frame {} index {}", cur.cols, cur.rows, start_frame, index);
     cuda::subtract(bgg, cur, diffg);
     //float diff_val = cuda::sum(diffg)[0] / (scale_w * scale_h);
 
     cuda::minMaxLoc(diffg, &minval, &maxval, &minloc, &maxloc, noArray());
-    dl.Logger("PickArea minval %f maxval %f minloc %d %d maxloc %d %d", minval, maxval, minloc.x, minloc.y, maxloc.x, maxloc.y);
+    CMd_DEBUG("PickArea minval {} maxval {} minloc {} {} maxloc {} {}", minval, maxval, minloc.x, minloc.y, maxloc.x, maxloc.y);
     diffg.download(diff);
     imwrite("gpu_diff.png", diff);
     result = TrackerInitPost(maxloc, obj, roi);
@@ -200,7 +200,6 @@ int GrayTracking::TrackerUpdate(cuda::GpuMat& src, int index, TRACK_OBJ* obj, TR
         float same_check = sum(same)[0]/(scale_w * scale_h);
         //dl.Logger("same check %f ", same_check);
         if (same_check < 0.2) {
-            dl.Logger("Current image is same as previous.. ");
             issame = true;
             //return same_check;
         }
@@ -209,7 +208,6 @@ int GrayTracking::TrackerUpdate(cuda::GpuMat& src, int index, TRACK_OBJ* obj, TR
     }
     else if( index == start_frame ) {
         first_summ = diff_val;
-        dl.Logger("First summ save %f ", first_summ);
     }
     cur.copyTo(prevg);
     */
@@ -230,12 +228,12 @@ int GrayTracking::TrackerInit(Mat& src, int index, TRACK_OBJ* obj, TRACK_OBJ* ro
     Mat cur; Mat dst;
     ImageProcess(src, cur);
     imwrite("tracker_init_cpu.png", cur);
-    dl.Logger("PickArea cos/row %d %d st_frame %d index %d", cur.cols, cur.rows, start_frame, index);
+    CMd_DEBUG("PickArea cos/row {} {} st_frame {}  index {}", cur.cols, cur.rows, start_frame, index);
     cv::subtract(bg, cur, diff);
     //float diff_val = cv::sum(diff)[0]/(scale_w * scale_h);
 
     cv::minMaxLoc(diff, &minval, &maxval, &minloc, &maxloc, Mat());
-    dl.Logger("PickArea minval %f maxval %f minloc %d %d maxloc %d %d", minval, maxval, minloc.x, minloc.y, maxloc.x, maxloc.y);
+    CMd_DEBUG("PickArea minval {} maxval {}  minloc {} {} maxloc {} {}", minval, maxval, minloc.x, minloc.y, maxloc.x, maxloc.y);
     imwrite("cpu_diff.png", diff);
     result = TrackerInitPost(maxloc, obj, roi);
     return result;       
@@ -255,7 +253,6 @@ int GrayTracking::TrackerUpdate(Mat& src, int index, TRACK_OBJ* obj, TRACK_OBJ* 
         float same_check = sum(same)[0]/(scale_w * scale_h);
         //dl.Logger("same check %f ", same_check);
         if (same_check < 0.2) {
-            dl.Logger("Current image is same as previous.. ");
             issame = true;
             //return same_check;
         }
@@ -264,7 +261,6 @@ int GrayTracking::TrackerUpdate(Mat& src, int index, TRACK_OBJ* obj, TRACK_OBJ* 
     }
     else if( index == start_frame ) {
         first_summ = diff_val;    
-        dl.Logger("First summ save %f ", first_summ);
     }
         cur.copyTo(prev);
     */
@@ -274,15 +270,14 @@ int GrayTracking::TrackerUpdate(Mat& src, int index, TRACK_OBJ* obj, TRACK_OBJ* 
 }
 
 int GrayTracking::TrackerInitPost(Point& max, TRACK_OBJ* obj, TRACK_OBJ* roi) {
-    dl.Logger("tracker init post.. ");
     obj->update(max.x - 30, max.y - 30, 60, 90);
     obj->update();
     roi->update(obj->sx - 10, obj->sy - 10, obj->w + 20, obj->h + 20);
     roi->update();
-    dl.Logger("gray obj %d %d %d %d", obj->sx, obj->sy, obj->w, obj->h);
-    dl.Logger("gray roi %d %d %d %d", roi->sx, roi->sy, roi->w, roi->h);
+    CMd_DEBUG("gray obj {} {} {} {}", obj->sx, obj->sy, obj->w, obj->h);
+    CMd_DEBUG("gray roi {} {} {} [}", roi->sx, roi->sy, roi->w, roi->h);
     ConvertToRect(roi, &rect_roi);
-    dl.Logger("gray rect roi for tracker init %d %d %d %d", rect_roi.x, rect_roi.y, rect_roi.width, rect_roi.height);
+    CMd_DEBUG("gray rect roi for tracker init {} {} {} {}", rect_roi.x, rect_roi.y, rect_roi.width, rect_roi.height);
     tracker->init(diff, rect_roi);
     isfound = true;
     //DrawObjectTracking(diff, obj, roi, false, 1);
@@ -294,7 +289,7 @@ int GrayTracking::TrackerUpdatePost(TRACK_OBJ* obj, TRACK_OBJ* roi) {
     //dl.Logger("tracker update %d %d %d %d ", rect_roi.x, rect_roi.y, rect_roi.width, rect_roi.height);
    
     if (ret == false) {
-        dl.Logger("tracker miss --------------------------------------------");
+        CMd_WARN("tracker miss --------------------------------------------");
 //        tracker->init(diff, rect_roi);            
     }
 

@@ -13,7 +13,6 @@ int main()
     InfoL << "Version : " << CURRENTVERSION;
     InfoL << "v : Version check";
 
-    printf("1 : Send Test Producer UI\n");
     DaemonMgr daemonMgr;
     char pStr[100];
     while (1)

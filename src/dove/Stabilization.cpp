@@ -24,23 +24,18 @@ using namespace dove;
 
 Dove::Dove() {
     p = new PARAM();
-    t = new TIMER();
-    dl = Dlog();
-    dl.SetLogFilename("TEST");    
-    dl.Logger("instance created.. ");    
+    t = new Configurator::TIMER();
+    CMd_INFO("instance created.. ");    
 
 }
 
 Dove::Dove(VIDEO_INFO* vinfo) {
     p = new PARAM();
-    t = new TIMER();
-    dl = Dlog();
-    dl.SetLogFilename("TEST");    
-    dl.Logger("instance created.. ");    
+    t = new Configurator::TIMER();
+    CMd_INFO("instance created.. ");    
 
 #if defined _MAC_
     dt = Detection();
-    dt.SetLogger(dl);
 #endif
 
     ConvertToParam(vinfo);
@@ -57,7 +52,7 @@ void Dove::ConvertToParam(VIDEO_INFO* info) {
     _out = info->output;
     p->event = info->event;
     int size = info->swipe_period.size();
-    dl.Logger("Conver To Param swipe period size %d", size);
+    CMd_DEBUG("Conver To Param swipe period size %d", size);
     for(int i = 0 ; i < size; i ++)
     {
         SWIPE_INFO one;
@@ -68,15 +63,15 @@ void Dove::ConvertToParam(VIDEO_INFO* info) {
         one.target_y = info->swipe_period[i].target_y;
         one.zoom = info->swipe_period[i].zoom;
         si.push_back(one);
-        dl.Logger("SW Period %d %d ", one.start, one.end);
-        dl.Logger("target %d %d zoom %d \n", one.target_x, one.target_y, one.zoom);        
+        CMd_DEBUG("SW Period %d %d ", one.start, one.end);
+        CMd_DEBUG("target %d %d zoom %d \n", one.target_x, one.target_y, one.zoom);        
     }
 
     if(info->width > 1920)
         p->scale = 2;
     else 
         p->scale = 1;
-    dl.Logger("Video width %d, scale %f", info->width, p->scale);
+    CMd_DEBUG("Video width %d, scale %f", info->width, p->scale);
 
     if (p->event != FIGURE) {
         p->roi_input = true;
@@ -136,12 +131,10 @@ void Dove::Initialize() {
     if(p->colored == false) {
         p->colored = false;
         tck = new GrayTracking();    
-        tck->SetLogFilename("TEST");
         tck->SetInitialData(p);
     } else if(p->colored == true) {
         p->colored = true;
         tck = new ColoredTracking();    
-        tck->SetLogFilename("TEST");
         tck->SetInitialData(p);
     }
 
@@ -192,18 +185,18 @@ void Dove::Initialize() {
     smth.at<double>(0,1) = 0; 
     smth.at<double>(1,0) = 0; 
     smth.at<double>(1,1) = 1;      
-    dl.Logger("Initialized compelete.");    
+    CMd_INFO("Initialized compelete.");    
 }
 
 Dove::~Dove() {
     delete k;
     delete p;
     delete t;
-    dl.Logger("delete instance  OK");
+    CMd_INFO("delete instance  OK");
 }
 
 int Dove::ProcessTemp() {
-    dl.Logger("Process started ");    
+    CMd_INFO("Process started ");    
     if(p->mode == OPTICALFLOW_LK_2DOF)
         ProcessLK();
     else if (p->mode == DETECT_TRACKING)
@@ -225,8 +218,6 @@ int Dove::Process() {
 //    VideoCapture in(_in);
     VideoCapture in("movie/4dmaker_600.mp4");
 #endif
-    dl.Logger("Process TK started ");
-
     Mat src1oc; Mat src1o;
     int frame_index = 0;
     int swipe_index = 0;
@@ -235,20 +226,17 @@ int Dove::Process() {
     bool final = false;
     TRACK_OBJ* pre_obj = new TRACK_OBJ();;
 
-    TIMER* tm;
-    tm = new TIMER();    
-    StartTimer(tm);
+    Configurator::TIMER* tm = new Configurator::TIMER();    
+    Configurator::Get().StartTimer(tm);
 
-    dl.Logger("si %d %d   ",si[swipe_index].start, si[swipe_index].end);     
+    CMd_DEBUG("si %d %d   ",si[swipe_index].start, si[swipe_index].end);     
     int t_frame_start = si[swipe_index].start;
     int t_frame_end = si[swipe_index].end;
     //test terminate
     return STABIL_COMPLETE;
     
     while(true) {
-         dl.Logger(" check.. 3 ");
 #if defined GPU
-        dl.Logger(" check.. 4 ");
          if (!in->nextFrame(src1ocg))
              break;
 #else 
@@ -256,7 +244,7 @@ int Dove::Process() {
         if(src1oc.data == NULL)
             break;
 #endif
-        dl.Logger("Frameindex [%d] ", frame_index);
+        CMd_INFO("Frameindex [{}] ", frame_index);
         if ( frame_index == 0)
         {                     
 #if defined GPU
@@ -323,7 +311,7 @@ int Dove::Process() {
 
             dx = (pre_obj->cx - obj->cx) * p->track_scale;
             dy = (pre_obj->cy - obj->cy) * p->track_scale;
-            dl.Logger("pre origin %f %f ", dx, dy);
+            CMd_DEBUG("pre origin {} {} ", dx, dy);
             FRAME_INFO one(frame_index, swipe_index, dx, dy);
             all.push_back(one);               
 
@@ -349,7 +337,6 @@ int Dove::Process() {
         frame_index++;            
     }
 
-    //dl.Logger("[%d] Image Analysis  %f ", i, LapTimer(all)); 
     Rect mg;     
     MakeNewTrajectory(&mg);
 
@@ -409,14 +396,14 @@ int Dove::Process() {
                 double new_dx = 0;
                 double new_dy = 0;
                 al.KalmanInOutput(k, &an, dx, dy, frame_index, &new_dx, &new_dy);
-                dl.Logger("post from kalman %f %f ", dx, dy);
+                CMd_DEBUG("post from kalman {} {} ", dx, dy);
 
                 smth.at<double>(0,2) = new_dx;
                 smth.at<double>(1,2) = new_dy;
             } else {
                 smth.at<double>(0,2) = dx;
                 smth.at<double>(1,2) = dy;
-                dl.Logger("[%d] will Apply %f %f ", frame_index, smth.at<double>(0,2), smth.at<double>(1,2));
+                CMd_DEBUG("[%d] will Apply {} {} ", frame_index, smth.at<double>(0,2), smth.at<double>(1,2));
             }
             ApplyImageRef();
         }
@@ -454,7 +441,7 @@ int Dove::Process() {
         frame_index++;
     }
 
-    dl.Logger(".. %f", LapTimer(tm));
+    CMd_DEBUG("Spend time :  {}", Configurator::Get().LapTimer(tm));
     out.release();
     return STABIL_COMPLETE;
 }
@@ -468,7 +455,7 @@ void Dove::CalculcateMargin(double minx, double maxx, double miny, double maxy, 
     int minleft = mx;
     int minright = p->dst_width - mx;
     int minbottom = p->dst_height - my;
-    dl.Logger("top %d left %d right %d bottom %d", mintop, minleft, minright, minbottom);
+    CMd_DEBUG("top {} left {} right {} bottom {}", mintop, minleft, minright, minbottom);
 
     if (minleft > mintop * p->dst_width / p->dst_height)
         mintop = minleft * p->dst_height / p->dst_width;
@@ -485,7 +472,7 @@ void Dove::CalculcateMargin(double minx, double maxx, double miny, double maxy, 
     mg->width = minright - minleft;
     mg->height = minbottom - mintop;
 
-    dl.Logger("Rect Margin %d %d %d %d", mg->x, mg->y, mg->width, mg->height);
+    CMd_DEBUG("Rect Margin {} {} {} {}", mg->x, mg->y, mg->width, mg->height);
 }
 
 #if defined GPU
@@ -529,7 +516,7 @@ int Dove::ImageProcess(Mat& src, Mat& dst) {
 }
 
 int Dove::MakeNewTrajectory(Rect* mg) {
-    dl.Logger("PostPrcess start ... all frame %d ", all.size());
+    CMd_INFO("PostPrcess start ... all frame {} ", all.size());
     double a = 0;
     double x = 0;
     double y = 0;
@@ -563,7 +550,7 @@ int Dove::MakeNewTrajectory(Rect* mg) {
             al.BSplineTrajectory(cur_traj, &sp_yout, 1);    
 
             for(size_t i = 0, j = si[index].start +1; i < cur_traj.size(); i++, j++) {
-                dl.Logger("spline output %f %f ", sp_xout[i].y, sp_yout[i].y);
+                CMd_DEBUG("spline output {} {} ", sp_xout[i].y, sp_yout[i].y);
                 smoothed_traj.push_back(dove::Trajectory(sp_xout[i].y, sp_yout[i].y, 0));
                 out_smoothed << j << " " << sp_xout[i].y << " " << sp_yout[i].y << " " << "0" << endl;
             }
@@ -612,14 +599,14 @@ int Dove::MakeNewTrajectory(Rect* mg) {
         new_delta.clear();
     }
     
-    dl.Logger("minx %f maxx %f miny %f maxy %f", minx, maxx, miny, maxy);
+    CMd_DEBUG("minx {} maxx {} miny {} maxy {}", minx, maxx, miny, maxy);
     CalculcateMargin(minx, maxx, miny, maxy, mg);
 
     return ERR_NONE;
 }
 
 int Dove::ProcessLK() {
-    dl.Logger(" LK process start..");
+    CMd_INFO("LK process start..");
 
     VideoCapture in(_in);
     VideoWriter out;    
@@ -698,30 +685,25 @@ int Dove::CalculateMove(Mat& cur, int frame_id) {
     } else if (p->mode == DETECT_TRACKING) {
         float fret = 0.0;
         fret = tck->DetectAndTrack(cur, frame_id, obj, roi);
-        dl.Logger("[%d] result %f isFound %d issmae %d ", frame_id, fret, tck->isfound, tck->issame);
+        CMd_DEBUG("[{}] result {} isFound {} issmae {} ", frame_id, fret, tck->isfound, tck->issame);
 
         if (tck->isfound == true) {
             if( fret >= p->swipe_threshold * tck->first_summ && swipe_on == false) {
                 swipe_on = true;
                 result = SWIPE_ON;            
-                dl.Logger("[%d] SWIPE START ", frame_id);
             }
             else if (swipe_on == true) {
                 result = KEEP_TRACKING_SWIPE;
-                dl.Logger("[%d] KEEP TRACKING SWIPE", frame_id); 
             }
             else {
                 result = KEEP_TRACKING;
-                dl.Logger("[%d] KEEP TRACKING", frame_id); 
             }
             if (tck->issame == true) {
-                dl.Logger("[%d] SAME ", frame_id);      
             }
 
         }    
         else if (tck->isfound == false){ 
             result = TRACK_NONE;
-            dl.Logger("[%d] NONE", frame_id);             
         }
     } else if( p->mode == DARKNET_DETECT_MOVE) {
 #if defined _MAC_
@@ -741,7 +723,7 @@ int Dove::Detect(Mat cur, int frame_id) {
     Mat dtin;
     cur.copyTo(dtin);
     result = dt.Detect(dtin, &box);
-    dl.Logger("[%d] detect result %d cnt [%d] ", frame_id, result, box.size());    
+    CMd_DEBUG("[{}] detect result {} cnt [{}] ", frame_id, result, box.size());    
     if(result < ERR_NONE)
         return result;
     
@@ -751,19 +733,18 @@ int Dove::Detect(Mat cur, int frame_id) {
         n.calCenter();
         objects.insert({frame_id, n});
         for(int i = 0; i < n.obj_cnt; i ++) {
-            dl.Logger("[%d] %d %d %d %d  - cx %d cy %d", frame_id, n.bbx[i].x , n.bbx[i].y,  n.bbx[i].w ,n.bbx[i].h, n.cx[i], n.cy[i]);
+            CMd_DEBUG("[{}] {} {} {} {}  - cx {} cy {}", frame_id, n.bbx[i].x , n.bbx[i].y,  n.bbx[i].w ,n.bbx[i].h, n.cx[i], n.cy[i]);
             obj_trajectory << frame_id << " " << n.bbx[i].x << " " << n.bbx[i].y << " " << n.bbx[i].w << " " << n.bbx[i].h << endl;
             obj_c_trajectory << frame_id << " " << n.cx[i] << " " << n.cy[i] << endl;
         }
-        dl.Logger("objects size %d -- cx %d ", objects.size(), objects[frame_id].cx[0]);
+        CMd_DEBUG("objects size {} -- cx {} ", objects.size(), objects[frame_id].cx[0]);
         if( frame_id >= 2 && objects[frame_id -1].obj_cnt > 0) {
             DT_XY m;
-            dl.Logger("Insert 1 cx %d cx-1 %d cy %d cy-1 %d ", objects[frame_id].cx[0], objects[frame_id -1].cx[0],
-                    objects[frame_id].cy[0], objects[frame_id -1].cy[0]);   
+            CMd_DEBUG("Insert 1 cx {} cx-1 {} cy {} cy-1 {} ", objects[frame_id].cx[0], objects[frame_id -1].cx[0], objects[frame_id].cy[0], objects[frame_id -1].cy[0]);   
 
             m.dx = objects[frame_id].cx[0] - objects[frame_id -1].cx[0];
             m.dy = objects[frame_id].cy[0] - objects[frame_id -1].cy[0];
-            dl.Logger("Insert DT_XY %d %d", m.dx, m.dy);
+            CMd_DEBUG("Insert DT_XY {} {}", m.dx, m.dy);
             dt_comp.insert({frame_id, m});
         }
         else {
@@ -817,7 +798,7 @@ int Dove::CalculateMove_LK(Mat& cur, int frame_id) {
     }
 
     if(goodFeatures1.size() < threshold || goodFeatures2.size() < threshold) {
-            dl.Logger("[%d] no feature to track.. feature %d: ", i,  goodFeatures1.size());
+            CMd_DEBUG("[{}] no feature to track.. feature {}: ", i,  goodFeatures1.size());
             pre_affine.copyTo(affine);
     }
     else {
@@ -825,7 +806,7 @@ int Dove::CalculateMove_LK(Mat& cur, int frame_id) {
     }
 
     if(affine.empty() == true) {
-        dl.Logger("there is no solution ..");
+        CMd_INFO("there is no solution ..");
         pre_affine.copyTo(affine);
     }
 
@@ -843,7 +824,7 @@ int Dove::CalculateMove_LK(Mat& cur, int frame_id) {
     double ds_x = affine.at<double>(0,0)/cos(da);
     double ds_y = affine.at<double>(1,1)/cos(da);
 
-    dl.Logger("origin dx %f dy %f", dx ,dy);
+    CMd_DEBUG("origin dx {} dy {}", dx ,dy);
 
     if(p->run_kalman) {
         out_transform << i << " " << dx << " " << dy << " " << da << endl;        
@@ -880,7 +861,7 @@ int Dove::CalculateMove_LK(Mat& cur, int frame_id) {
 		dx = dx + diff_x;
 		dy = dy + diff_y;
 		da = da + diff_a;
-        dl.Logger("from kalman %f %f ", dx, dy);
+        CMd_DEBUG("from kalman {} {} ", dx, dy);
 		//new_prev_to_cur_transform.push_back(TransformParam(dx, dy, da));
 		//
 		out_new << i << " " << dx << " " << dy << " " << da << endl;        
@@ -901,7 +882,6 @@ int Dove::CalculateMove_LK(Mat& cur, int frame_id) {
     smth.at<double>(1,2) = dy;
     i++;
 
-    //dl.Logger("calculate done dx %f dy %f", dx, dy);
     return ERR_NONE;
 }
 
@@ -915,7 +895,7 @@ int Dove::CalculateMove_Tracker(Mat& cur) {
 
 void Dove::ApplyImage(Mat& src, bool scaled) {
     if( smth.at<double>(0,2) == 0.0 && smth.at<double>(1,2) == 0.0) {
-        dl.Logger("no warp");
+        CMd_WARN("no warp");
         return;
     }
 
@@ -924,7 +904,7 @@ void Dove::ApplyImage(Mat& src, bool scaled) {
         smth.at<double>(1,2) = smth.at<double>(1,2) * p->scale;      
     }
 
-    dl.Logger("apply image %f %f ", smth.at<double>(0,2), smth.at<double>(1,2));
+    CMd_DEBUG("apply image {} {} ", smth.at<double>(0,2), smth.at<double>(1,2));
     cv::warpAffine(src, src, smth, src.size());
     // if(scaled == true) {
     //      static int i = 1;
@@ -960,7 +940,7 @@ void Dove::ProcessChristmas() {
         out.open(_out, VideoWriter::fourcc('M', 'J', 'P', 'G'), 30, Size(1930, 540));
     else 
         out.open(_out, VideoWriter::fourcc('M', 'J', 'P', 'G'), 30, Size(p->dst_width, p->dst_height));
-    dl.Logger("Process TK started ");
+
 #if defined GPU
     cuda::GpuMat src1ocg;
     cuda::GpuMat src1og;
@@ -972,9 +952,8 @@ void Dove::ProcessChristmas() {
     vector <TransformParam> prev_to_cur_transform;
     TRACK_OBJ* pre_obj = new TRACK_OBJ();;
 
-    TIMER* all;
-    all = new TIMER();    
-    StartTimer(all);    
+    Configurator::TIMER* all =  new Configurator::TIMER();    
+    Configurator::Get().StartTimer(all);    
     int t_frame_start = p->swipe_start;
     int t_frame_end = p->swipe_end;
 
@@ -1030,8 +1009,7 @@ void Dove::ProcessChristmas() {
             vector <Point2f> goodFeatures1, goodFeatures2;
             vector <uchar> status;
             vector <float> err;
-            dl.Logger("tck->rect_feature_roi s %d %d w %d %d ", tck->rect_feature_roi.x, tck->rect_feature_roi.y,
-                    tck->rect_feature_roi.width, tck->rect_feature_roi.height);
+            CMd_DEBUG("tck->rect_feature_roi s {} {} w {} {} ", tck->rect_feature_roi.x, tck->rect_feature_roi.y, tck->rect_feature_roi.width, tck->rect_feature_roi.height);
             Mat roi_ref = ref(tck->rect_feature_roi);
             Mat roi_cur = src1o(tck->rect_feature_roi);
             goodFeaturesToTrack(roi_ref, features1, 200, 0.01, 30);    
@@ -1047,7 +1025,7 @@ void Dove::ProcessChristmas() {
             }
 
             if(goodFeatures1.size() < threshold || goodFeatures2.size() < threshold) {
-                    dl.Logger("[%d] no feature to track.. feature %d: ", i,  goodFeatures1.size());
+                    CMd_WARN("[{}] no feature to track.. feature {} : ", i,  goodFeatures1.size());
                     pre_affine.copyTo(affine);
             }
             else {
@@ -1055,14 +1033,12 @@ void Dove::ProcessChristmas() {
             }
 
             if(affine.empty() == true) {
-                dl.Logger("there is no solution ..");
+                CMd_WARN("there is no solution ..");
                 pre_affine.copyTo(affine);
             }
 
             dx = affine.at<double>(0,2);
             dy = affine.at<double>(1,2);
-
-            dl.Logger("origin dx %f dy %f", dx ,dy);
 
             if(p->run_kalman) {
                 out_transform << i << " " << dx << " " << dy << " " << da << endl;        
@@ -1099,7 +1075,7 @@ void Dove::ProcessChristmas() {
                 dx = dx + diff_x;
                 dy = dy + diff_y;
                 da = da + diff_a;
-                dl.Logger("from kalman %f %f ", dx, dy);
+                CMd_DEBUG("from kalman {} {} ", dx, dy);
                 //new_prev_to_cur_transform.push_back(TransformParam(dx, dy, da));
                 //
                 out_new << i << " " << dx << " " << dy << " " << da << endl;        
@@ -1128,5 +1104,5 @@ void Dove::ProcessChristmas() {
         i++;
     }
 
-    dl.Logger(" All process done.  %f ", LapTimer(all));
+    CMd_INFO(" All process done. {} ", Configurator::Get().LapTimer(all));
 }

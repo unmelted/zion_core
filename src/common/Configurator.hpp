@@ -13,7 +13,7 @@
     Description     : Managing configuration. for system & algorithm
     Notes           : 
 */
-
+#pragma once
 #include <cstdlib>
 #include <time.h>
 #include <chrono>
@@ -22,12 +22,26 @@
 class Configurator {
 
 public:
+    typedef struct _TIMER {
+        unsigned int expire;
+        void* routine;
+        void* arg;
+        short timer_id;
+        clock_t last_time;
+        bool last_check = 0;
+        
+    } TIMER;
+
     static Configurator& Get();
-    void SetDirectory();
-    std::string GenerateToken();
-    void UpdateConfiture(int mode, int category, double value);
-    std::string getCurrentDateTime(std::string s);
-    
+    void SetDirectory();   
+    std::string GenerateToken();     
+    std::string getCurrentDateTime(std::string s);   
+    void UpdateConfiture(int mode, int category, double value); 
+
+    void StartTimer(TIMER *times);
+    int EndTimer(TIMER *times);
+    float LapTimer(TIMER *times);
+
     struct Path {
         static inline const std::filesystem::path LOG {std::filesystem::current_path().append("Log") };
         static inline const std::filesystem::path DUMP {std::filesystem::current_path().append("Dump") };

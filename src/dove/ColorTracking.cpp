@@ -32,7 +32,7 @@ void ColoredTracking::SetBg(Mat& src, int frame_id) {
         cv::resize(src, bg, Size(scale_w, scale_h));
     }
     imwrite("cpu_bg.png", bg);
-    dl.Logger("Colored Setbg function finish %d %d ", bg.cols, bg.rows);    
+    CMd_INFO("Colored Setbg function finish {} {} ", bg.cols, bg.rows);    
 }
 
 void ColoredTracking::ImageProcess(Mat& src, Mat& dst) {
@@ -54,7 +54,7 @@ void ColoredTracking::SetBg(cuda::GpuMat& src, int frame_id) {
     }
     src.download(bg);
     imwrite("gpu_bg2.png", bg);    
-    dl.Logger("Colored Setbg function finish %d %d ", bg.cols, bg.rows);    
+    CMd_INFO("Colored Setbg function finish {} {} ", bg.cols, bg.rows);    
 }
 
 void ColoredTracking::ImageProcess(cuda::GpuMat& src, cuda::GpuMat& dst) {
@@ -90,24 +90,24 @@ int ColoredTracking::TrackerInit(Mat& src, int index, TRACK_OBJ* obj, TRACK_OBJ*
     Point minloc; Point maxloc;
     Mat cur; Mat cur_gray; Mat bg_gray;
     ImageProcess(src, cur);
-    dl.Logger("PickArea cos/row %d %d st_frame %d index %d", cur.cols, cur.rows, start_frame, index);
+    CMd_DEBUG("PickArea cos/row {} {} st_frame {} index {}", cur.cols, cur.rows, start_frame, index);
     cv::cvtColor(bg, bg_gray, COLOR_BGR2GRAY);
     cv::cvtColor(cur, cur_gray, COLOR_BGR2GRAY);
     cv::subtract(bg_gray, cur_gray, diff);
     float diff_val = cv::sum(diff)[0]/(scale_w * scale_h);
 
     cv::minMaxLoc(diff, &minval, &maxval, &minloc, &maxloc, Mat());
-    dl.Logger("PickArea minval %f maxval %f minloc %d %d maxloc %d %d", minval, maxval, minloc.x, minloc.y, maxloc.x, maxloc.y);
+    CMd_DEBUG("PickArea minval {} maxval {} minloc {} {} maxloc {} {}", minval, maxval, minloc.x, minloc.y, maxloc.x, maxloc.y);
     imwrite("cpu_diff.png", diff);
     obj->update(maxloc.x -30, maxloc.y -30, 60, 90);
     obj->update();
     roi->update(obj->sx - 10, obj->sy - 10, obj->w + 20, obj->h + 20);    
     roi->update();
-    dl.Logger("color obj %d %d %d %d", obj->sx, obj->sy ,obj->w , obj->h);
-    dl.Logger("color roi %d %d %d %d", roi->sx, roi->sy ,roi->w , roi->h);
+    CMd_DEBUG("color obj {} {} {} {}", obj->sx, obj->sy ,obj->w , obj->h);
+    CMd_DEBUG("color roi {} {} {} {}", roi->sx, roi->sy ,roi->w , roi->h);
 
     ConvertToRect(roi, &rect_roi);
-    dl.Logger("color rect roi for tracker init %d %d %d %d", rect_roi.x, rect_roi.y, rect_roi.width, rect_roi.height);
+    CMd_DEBUG("color rect roi for tracker init {} {} {} {}", rect_roi.x, rect_roi.y, rect_roi.width, rect_roi.height);
     tracker->init(cur, rect_roi);
     isfound = true;
     //DrawObjectTracking(diff, obj, roi, false, 1);
@@ -123,8 +123,7 @@ int ColoredTracking::TrackerUpdate(Mat& src, int index, TRACK_OBJ* obj, TRACK_OB
     //dl.Logger("[%d] colortracker update %d %d %d %d ",index, rect_roi.x, rect_roi.y, rect_roi.width, rect_roi.height);
    
     if (ret == false) {
-        dl.Logger("tracker miss --------------------------------------------");
-//        tracker->init(diff, rect_roi);            
+        CMd_WARN("tracker miss --------------------------------------------");
     }
 
     ConvertToROI(rect_roi, obj, roi);

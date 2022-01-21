@@ -32,7 +32,8 @@
 #include <string.h>
 #include <vector>
 #include <algorithm>
-#include "TimeUtil.hpp"
+#include "Configurator.hpp"
+#include "CMdLogger.hpp"
 
 #if defined _MAC_
 #include "darknet/yolo_v2_class.hpp"

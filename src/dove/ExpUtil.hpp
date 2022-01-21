@@ -24,10 +24,7 @@ using namespace dove;
 class ExpUtil {
 
 public:
-    Dlog dl;
     bool json_file_mode = false;
-    void SetLogFilename(string name) {this->dl.SetLogFilename(name); }; 
-
     int ImportVideoInfo(const string js, VIDEO_INFO* info);
     void TestGetSwipeInfo(string _in, PARAM* p);
 

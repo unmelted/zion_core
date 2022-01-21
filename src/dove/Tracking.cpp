@@ -19,7 +19,6 @@
 
 Tracking::Tracking() {
     p = new PARAM();    
-    dl = Dlog();
     isfound = false;
     issame = false;
     first_summ = 0.0;
@@ -106,10 +105,10 @@ int Tracking::TrackerInitFx(Mat& src, int index, int cx, int cy, TRACK_OBJ* obj,
     obj->update();
     roi->update(obj->sx - 10, obj->sy - 10, obj->w + 20, obj->h +20);
     roi->update();
-    dl.Logger("[%d] obj %d %d %d %d", index, obj->sx, obj->sy ,obj->w , obj->h);
-    dl.Logger("[%d] roi %d %d %d %d", index, roi->sx, roi->sy ,roi->w , roi->h);
+    CMd_DEBUG("[{}] obj {} {} {} {}", index, obj->sx, obj->sy ,obj->w , obj->h);
+    CMd_DEBUG("[{}] roi {} {} {} {}", index, roi->sx, roi->sy ,roi->w , roi->h);
     ConvertToRect(roi, &rect_roi);
-    dl.Logger("tracker init fix  rect fx roi for tracker init %d %d %d %d", rect_roi.x, rect_roi.y, rect_roi.width, rect_roi.height);
+    CMd_DEBUG("tracker init fix  rect fx roi for tracker init {} {} {} {}", rect_roi.x, rect_roi.y, rect_roi.width, rect_roi.height);
     tracker->init(cur, rect_roi);
     isfound = true;
 
@@ -127,10 +126,10 @@ int Tracking::TrackerInitFx(cuda::GpuMat& src, int index, int cx, int cy, TRACK_
     obj->update();
     roi->update(obj->sx - 10, obj->sy - 10, obj->w + 20, obj->h +20);
     roi->update();
-    dl.Logger("[%d] obj %d %d %d %d", index, obj->sx, obj->sy ,obj->w , obj->h);
-    dl.Logger("[%d] roi %d %d %d %d", index, roi->sx, roi->sy ,roi->w , roi->h);
+    CMd_DEBUG("[{}] obj {} {} {} {}", index, obj->sx, obj->sy ,obj->w , obj->h);
+    CMd_DEBUG("[{}] roi {} {} {} {}", index, roi->sx, roi->sy ,roi->w , roi->h);
     ConvertToRect(roi, &rect_roi);
-    dl.Logger("tracker init fix  rect fx roi for tracker init %d %d %d %d", rect_roi.x, rect_roi.y, rect_roi.width, rect_roi.height);
+    CMd_DEBUG("tracker init fix  rect fx roi for tracker init {} {} {} {}", rect_roi.x, rect_roi.y, rect_roi.width, rect_roi.height);
     tracker->init(cur, rect_roi);
     isfound = true;
 
@@ -142,7 +141,7 @@ float Tracking::DetectAndTrack(Mat& src, int index, TRACK_OBJ* obj, TRACK_OBJ* r
     int result = 0;
     Mat cur; Mat dst;
     ImageProcess(src, cur);
-    dl.Logger("DetectAndTrack function start %d %d st_frame %d index %d", cur.cols, cur.rows, start_frame, index);
+    CMd_DEBUG("DetectAndTrack function start {} {} st_frame {} index {}", cur.cols, cur.rows, start_frame, index);
     cv::subtract(bg, cur, diff);
     float diff_val = cv::sum(diff)[0]/(scale_w * scale_h);
 
@@ -152,9 +151,8 @@ float Tracking::DetectAndTrack(Mat& src, int index, TRACK_OBJ* obj, TRACK_OBJ* r
         // sprintf(filename, "saved/%d_samecheck.png", index);
         // imwrite(filename, same);
         float same_check = cv::sum(same)[0]/(scale_w * scale_h);
-        dl.Logger("same check %f ", same_check);
         if (same_check < 0.2) {
-            dl.Logger("Current image is same as previous.. ");
+            CMd_INFO("Current image is same as previous.. ");
             issame = true;
             return same_check;
         }
@@ -163,7 +161,6 @@ float Tracking::DetectAndTrack(Mat& src, int index, TRACK_OBJ* obj, TRACK_OBJ* r
     }
     else if( index == start_frame ) {
         first_summ = diff_val;    
-        dl.Logger("First summ save %f ", first_summ);
     }
     cur.copyTo(prev);
 
@@ -182,13 +179,13 @@ float Tracking::DetectAndTrack(Mat& src, int index, TRACK_OBJ* obj, TRACK_OBJ* r
     vector<Rect>q; 
 
     ms->detectRegions(dst, res_pt, res_rect);
-    dl.Logger("DetectRegion result rect count %d", res_rect.size());
+    CMd_DEBUG("DetectRegion result rect count {}", res_rect.size());
 
     for(int i = 0; i < res_rect.size() ; i ++ ) {
         if(CheckWithin(res_rect[i]) == true)
             t.push_back(res_rect[i]);
     }
-    dl.Logger("check within 1st step. t size %d", t.size());
+    CMd_DEBUG("check within 1st step. t size {}", t.size());
     //sort(t.begin(), t.end(), Compare2);
     // for(int i = 0 ; i < t.size(); i++) 
     //     printf("rect t[i] %d %d %d %d\n", t[i].x, t[i].y, t[i].width, t[i].height);
@@ -200,28 +197,28 @@ float Tracking::DetectAndTrack(Mat& src, int index, TRACK_OBJ* obj, TRACK_OBJ* r
         if(CheckWithin(t[i], i, t) == false)
             q.push_back(t[i]);
     }
-    dl.Logger("check within 2nd step. q size %d", q.size());
+    CMd_DEBUG("check within 2nd step. q size {}", q.size());
     res_rect.clear();    
     for (int i = 0 ; i < q.size(); i ++) {
         if(GetIOU(q[i], i, q) < p->iou_threshold) {
             res_rect.push_back(q[i]);
         }
     }
-    dl.Logger("Filtered rect count %d", res_rect.size());    
+    CMd_DEBUG("Filtered rect count {}", res_rect.size());    
     //DrawObjectTracking(obj, roi, res_rect);
     
     int last = res_rect.size() - 1;
     if(res_rect.size() == 0) {
         isfound = false;
         p->keep_tracking = false;
-        dl.Logger("Filtered none..");
+        CMd_INFO("Filtered none..");
     }
     else if (res_rect.size() > 0 && isfound == false && res_rect[last].width * res_rect[last].height > p->area_threshold) {
         isfound = true;
         obj->update(res_rect[last].x, res_rect[last].y, res_rect[last].width, res_rect[last].height);
         obj->id = last;
         obj->update();
-        dl.Logger("[%d] Object found. obj s %d %d w %d %d c %f %f e %d %d ", index, obj->sx, obj->sy, obj->w, obj->h, obj->cx, obj->cy, obj->ex, obj->ey);
+        CMd_DEBUG("[{}] Object found. obj s {} {} w {} {} c {} {} e {} {} ", index, obj->sx, obj->sy, obj->w, obj->h, obj->cx, obj->cy, obj->ex, obj->ey);
     }
     else if (res_rect.size() > 0 && isfound == true) {
         bool newfound = false;
@@ -239,20 +236,20 @@ float Tracking::DetectAndTrack(Mat& src, int index, TRACK_OBJ* obj, TRACK_OBJ* r
         if(newfound == true){
             isfound = true;
             p->keep_tracking = true;
-            dl.Logger("[%d] [OBJ] s %d %d w %d %d c %f %f e %d %d", index, obj->sx, obj->sy, obj->w, obj->h, obj->cx, obj->cy,
+            CMd_DEBUG("[{}] [OBJ] s {} {} w {} {} c {} {} e {} {}", index, obj->sx, obj->sy, obj->w, obj->h, obj->cx, obj->cy,
                 obj->ex, obj->ey);
         } else {
             isfound = false;
             p->keep_tracking = false;
-            dl.Logger("[%d] ------------------missed !!", index);            
-            dl.Logger("[%d] Mssing obj s %d %d w %d %d ", index, obj->sx, obj->sy, obj->w, obj->h);            
+            CMd_WARN("[{}] ------------------missed !!", index);            
+            CMd_WARN("[{}] Mssing obj s {} {} w {} {} ", index, obj->sx, obj->sy, obj->w, obj->h);            
         }
     }
 
     if (isfound == true)
         MakeROI(obj, roi);
 
-    dl.Logger("[%d] isfound %d issmae %d diff_val %f ", index, isfound, issame, diff_val);
+    CMd_DEBUG("[{}] isfound {} issmae {} diff_val {} ", index, isfound, issame, diff_val);
     q.clear();
     t.clear();
     return diff_val;
@@ -309,7 +306,7 @@ void Tracking::MakeROI(TRACK_OBJ* obj, TRACK_OBJ* roi) {
     roi->w = roi->ex - roi->sx;
     roi->h = roi->ey - roi->sy;
     
-    dl.Logger("[ROI] s %d %d w %f %f e %d %d", int(roi->sx), int(roi->sy), int(roi->w), int(roi->h),
+    CMd_DEBUG("[ROI] {} {} {} {} {} {}", int(roi->sx), int(roi->sy), int(roi->w), int(roi->h),
          int(roi->ex), int(roi->ey));
 
 }

@@ -39,6 +39,7 @@
 #include <rapidjson/prettywriter.h>
 #include "DMServer.h"
 #include "DaemonDefine.h"
+#include "CMdLogger.hpp"
 #include "json.hpp"
 #include "MessageQueue.h"
 #include "Configurator.hpp"

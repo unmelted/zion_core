@@ -31,11 +31,9 @@ TaskManager::TaskManager(size_t num_worker_, MsgManager* a)
     }
 
     watcher = new std::thread(&TaskManager::WatchFuture, this);
-    stblz = new Dove();
 }
 
 TaskManager::~TaskManager() {
-    printf(" stop all ? \n");
     stop_all = true;
     watching = false;
 
@@ -51,7 +49,7 @@ TaskManager::~TaskManager() {
 		delete watcher;
 		watcher = nullptr;
 	}
-
+    CMd_DEBUG("TaskManager Destroyed Done.");
 }
 
 template <class F, class... Args>
@@ -69,7 +67,6 @@ void TaskManager::EnqueueJob(MessageQueue<int>* fu, F&& f, Args&&... args) {
     }
     cv_job.notify_one();
     fu->Enqueue(job_result_future.get());
-//    return job_result_future;
 }
 
 void TaskManager::WorkerThread() {
@@ -89,21 +86,21 @@ void TaskManager::WorkerThread() {
 int TaskManager::RunStabilize(shared_ptr<VIDEO_INFO> arg)
 {
     int result = -1;
-    printf("RunStabilize start..\n");
-    printf(" swipe period size 2 %lu \n", arg->swipe_period.size());
+    CMd_DEBUG(" Stabil Swipe period size {}", arg->swipe_period.size());
+    unique_ptr<Dove> stblz(new Dove());
     stblz->SetInfo(arg.get());    
     result = stblz->Process();
-    printf("RunStabilize end..\n");    
+    CMd_INFO("Run stabilize Done. Result : {}" , result);
     return result;
 } 
 
 int TaskManager::CommandTask(int mode, shared_ptr<VIDEO_INFO> arg) {
 
-    if(cur_worker == TASKPOOL_SIZE)
-        return CMD::TASKMANAGER_NO_MORE_WOKER;
+    if(cur_worker == num_worker)
+        CMd_DEBUG("CMd Job Queue is fool. working worker + job = : {}", cur_worker);
+    cur_worker++;
 
     if(mode == CMD::POST_STABILIZATION) {
-        printf(" swipe period size 1 %lu \n", arg->swipe_period.size());                
         EnqueueJob(&m_future, &TaskManager::RunStabilize, this, arg);
     }
 
@@ -113,12 +110,12 @@ int TaskManager::CommandTask(int mode, shared_ptr<VIDEO_INFO> arg) {
 void TaskManager::WatchFuture() {
 
     while(watching) {
-        if (m_future.IsQueue()) 
+        if (m_future.IsQueue()) {
             MakeSendMsg(m_qTMSG.Dequeue(),  m_future.Dequeue());
-
+            cur_worker--;
+        }
         std::this_thread::sleep_for(std::chrono::milliseconds(10));        
     }
-
 }
 
 void TaskManager::OnRcvTask(std::shared_ptr<CMD::MSG_T> ptrMsg) {
@@ -138,7 +135,6 @@ std::string TaskManager::GetDocumentToString(Document& document)
 
 void TaskManager::MakeSendMsg(std::shared_ptr<CMD::MSG_T> ptrMsg, int result) {
 
-    printf("Make Send MSG is called \n ");
     if(result <  CMD::ERR_NONE) 
         return;
 
@@ -151,7 +147,7 @@ void TaskManager::MakeSendMsg(std::shared_ptr<CMD::MSG_T> ptrMsg, int result) {
         nlohmann::json j = nlohmann::json::parse(ptrMsg->txt);
         std::string outfile = j["output"];
         std::string str_token = Configurator::Get().GenerateToken();
-        printf(" generated token %s ", str_token.c_str());
+        CMd_INFO(" Generated token {} ", str_token.c_str());
 
         sndDoc.AddMember(MTDPROTOCOL_SECTION1, "4DReplay", allocator);
         sndDoc.AddMember(MTDPROTOCOL_SECTION2, "CM", allocator);

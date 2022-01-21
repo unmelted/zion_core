@@ -59,7 +59,6 @@ MsgManager::~MsgManager() {
 }
 
 void* MsgManager::RcvMSGThread(void* arg) {
-	printf("RcvMsgThread start \n");
 
 	std::shared_ptr<CMD::MSG_T> msg = nullptr;
 	while(b_RMSGThread)
@@ -70,14 +69,14 @@ void* MsgManager::RcvMSGThread(void* arg) {
 			m_taskmanager.OnRcvTask(msg);
 			if (msg != nullptr)
 			{
-				cout << "RcvMSGThread : " << msg->txt<< endl;
+				CMd_INFO("RcvMSGThread : {} ", msg->txt);
 				json j = json::parse(msg->txt);
 				string action = j["Action"];
 				if (action == "Stabilization") {
 					ExpUtil in;
 					shared_ptr<VIDEO_INFO>info = make_shared<VIDEO_INFO>();
 					int result = in.ImportVideoInfo(msg->txt, info.get());
-			        printf(" swipe period size 0 %lu \n", info->swipe_period.size());        					
+			        CMd_INFO(" swipe period size {} ", info->swipe_period.size());
 					if (result == CMD::ERR_NONE) {
 						m_taskmanager.CommandTask(CMD::POST_STABILIZATION, info);
 					}
@@ -101,7 +100,7 @@ void MsgManager::OnRcvMessage(char* pData) {
 }
 
 void MsgManager::OnRcvSndMessage(std::string msg) {
-	cout << "OnRcvSndMessage : " << msg << endl;
+	CMd_INFO("OnRcvSndMessage : {}", msg );
 	std::shared_ptr<std::string> pmsg = make_shared<std::string>(msg);
 	m_qSMSG.Enqueue(pmsg);
 }
@@ -113,7 +112,7 @@ void* MsgManager::SndMSGThread(void* arg) {
 
 		if (m_qSMSG.IsQueue()) {
 			msg = m_qSMSG.Dequeue();		
-			cout << " SndMsg thread msg : "<< msg->c_str()<<endl;
+			CMd_INFO(" SndMsg thread msg : {} " , msg->c_str());
 			GetDMServer()->SendData(msg->c_str());
 		}
 		std::this_thread::sleep_for(std::chrono::milliseconds(3));
