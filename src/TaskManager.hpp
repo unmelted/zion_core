@@ -47,7 +47,6 @@ private:
     std::function<void(MsgManager&, const std::string msg)>fSendQue;
 
     MsgManager* m_msgmanager;
-    Dove* stblz;
     bool stop_all;
     bool watching;
     void WorkerThread();

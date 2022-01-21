@@ -28,12 +28,10 @@ class Detection {
     ~Detection();
 
     PARAM* p;
-    Dlog dl;
     Detector* dt;
     vector<int>id_filter;
     vector<string> obj_names;
 
-    void SetLogger(Dlog& log) { dl = log; };
     int LoadModel(PARAM* _p);
     int Detect(Mat cur, vector<bbox_t>* ret);
     bool IsObjInROI(bbox_t& b);

@@ -26,7 +26,6 @@ class Tracking {
 
     public :      
     PARAM* p;                                     
-    Dlog dl;
     int start_frame;
     float first_summ;
     bool isfound;
@@ -53,7 +52,7 @@ class Tracking {
     Tracking();
     virtual ~Tracking();
     void SetInitialData(PARAM* _p);
-    void SetLogFilename(string name) {this->dl.SetLogFilename(name); };    
+    void SetLogFilename(string name) {this->SetLogFilename(name); };    
     float DetectAndTrack(Mat& src, int index, TRACK_OBJ* obj, TRACK_OBJ* roi);
     void DrawObjectTracking(Mat& src, TRACK_OBJ* obj, TRACK_OBJ* roi, bool borigin = false);
     void DrawObjectTracking(TRACK_OBJ* obj, TRACK_OBJ* roi, vector<Rect> rects);

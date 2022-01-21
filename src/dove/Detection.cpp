@@ -49,7 +49,7 @@ int Detection::Detect(Mat cur, vector<bbox_t>* ret) {
     vector<bbox_t>box;  
     box = dt->detect(cur);
     //box = dt->tracking_id(box);
-    dl.Logger("Detection::Detect done %d ", box.size());
+    CMd_INFO("Detection::Detect done {} ", box.size());
     if(box.size() > 0 ){
         for(int i = 0 ; i < box.size(); i ++) {
             //dl.Logger("detected id %d size %d %d ", box[i].obj_id, box[i].w, box[i].h);
@@ -62,7 +62,7 @@ int Detection::Detect(Mat cur, vector<bbox_t>* ret) {
         }   
     }
     else ret->clear();
-    dl.Logger("Detection::Detect filtered %d ", ret->size());
+    CMd_INFO("Detection::Detect filtered {} ", ret->size());
     return ERR_NONE;
 }
 

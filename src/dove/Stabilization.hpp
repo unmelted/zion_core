@@ -32,10 +32,9 @@ using namespace dove;
 class Dove {
 public: 
     PARAM* p;
-    TIMER* t;
+    Configurator::TIMER* t;
     KALMAN* k;
     Tracking* tck;
-    Dlog dl;
     Algebra al;
     ExpUtil ex;
     vector<FRAME_INFO> all;

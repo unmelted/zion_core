@@ -17,7 +17,6 @@
 #include "Algebra.hpp"
 
 Algebra::Algebra() {
-    dl = Dlog();
 }
 
 Algebra::~Algebra() 
@@ -37,7 +36,7 @@ int Algebra::BSplineTrajectory(vector<dove::Trajectory>& gt, vector<dove::Trajec
         out_.open("analysis/spline_y.txt");
 
     const size_t n = gt.size();
-    dl.Logger(" n size %d", n);
+    CMd_INFO(" n size {}", n);
 
     const size_t ncoeffs = NCOEFFS;
     const size_t nbreak = NBREAK;
@@ -95,14 +94,13 @@ int Algebra::BSplineTrajectory(vector<dove::Trajectory>& gt, vector<dove::Trajec
 
     gsl_multifit_wlinear(X, w, y, c, cov, &chisq, mw);
     dof = n - ncoeffs;
-    dl.Logger("chisq %f %e", chisq, chisq / dof);
+    CMd_DEBUG("chisq {} {}", chisq, chisq / dof);
     double xi, yi, yerr, origin;
     for(xi = 0 ; xi < n ; xi++) { 
         gsl_bspline_eval(xi, B, bw);
         gsl_multifit_linear_est(B, c, cov, &yi, &yerr);
         out->push_back(dove::Trajectory(0, yi, 0));        
         out_ << xi << " "<< yi << endl;
-//        printf(" %f %f \n", xi, yi);
 
     }
     gsl_rng_free(r);
@@ -169,7 +167,7 @@ int Algebra::BSplineExample() {
         gsl_vector_set(y, i, yi);
         gsl_vector_set(w, i, 1.0 / (sigma * sigma));
 
-        printf("%f %f\n", xi, yi);
+        //printf("%f %f\n", xi, yi);
     }
 
     gsl_bspline_knots_uniform(0.0, 15.0, bw);
@@ -193,10 +191,10 @@ int Algebra::BSplineExample() {
     tss = gsl_stats_wtss(w->data, 1, y->data, 1, y->size);
     Rsq = 1.0 - chisq / tss;
 
-    fprintf(stderr, "chisq/dof = %e, Rsq = %f\n",
-                chisq / dof, Rsq);
+    //fprintf(stderr, "chisq/dof = %e, Rsq = %f\n",
+    //                chisq / dof, Rsq);
 
-    printf("\n\n");
+    //printf("\n\n");
 
     {
         double xi, yi, yerr;
@@ -204,7 +202,7 @@ int Algebra::BSplineExample() {
         for (xi = 0.0; xi < 15.0; xi += 0.1) {
             gsl_bspline_eval(xi, B, bw);
             gsl_multifit_linear_est(B, c, cov, &yi, &yerr);
-            printf("%f %f\n", xi, yi);
+        //    printf("%f %f\n", xi, yi);
         }
     }
 
@@ -257,7 +255,6 @@ int Algebra::KalmanInOutput(dove::KALMAN* k, dove::ANALYSIS* a, double dx, doubl
     *ndx = dx + diff_x;
     *ndy = dy + diff_y;
     da = da + diff_a;
-    dl.Logger("pre from kalman %f %f ", *ndx, *ndy);
     *a->out_new << index << " " << *ndx << " " << *ndy << " " << da << endl;
     return dove::ERR_NONE;
 }
