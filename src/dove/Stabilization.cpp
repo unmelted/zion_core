@@ -111,12 +111,13 @@ void Dove::Initialize() {
         p->detector_type = BLOB_MSER;
         p->tracker_type = CSRT; //tracker_none;
         p->track_scale = 3;
-        p->limit_lx = 5;
-        p->limit_ly = 5;
-        p->limit_bx = 630;
-        p->limit_by = 350;
-        p->roi_w = 200;
-        p->roi_h = 160;
+        p->limit_lx = 5; // only use for mser detect
+        p->limit_ly = 5; // only use for mser detect
+        p->limit_bx = 630; // only use for mser detect
+        p->limit_by = 350; // only use for mser detect
+        p->roi_w = 60;
+        p->roi_h = 900;
+
         p->swipe_threshold = 15;
         p->area_threshold = 200;
         p->iou_threshold = 0.3;
@@ -229,11 +230,9 @@ int Dove::Process() {
     Configurator::TIMER* tm = new Configurator::TIMER();    
     Configurator::Get().StartTimer(tm);
 
-    CMd_DEBUG("si %d %d   ",si[swipe_index].start, si[swipe_index].end);     
+    CMd_DEBUG("si {} {}  ",si[swipe_index].start, si[swipe_index].end);     
     int t_frame_start = si[swipe_index].start;
     int t_frame_end = si[swipe_index].end;
-    //test terminate
-    return STABIL_COMPLETE;
     
     while(true) {
 #if defined GPU

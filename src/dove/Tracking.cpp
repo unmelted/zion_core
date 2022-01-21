@@ -101,7 +101,7 @@ int Tracking::TrackerInitFx(Mat& src, int index, int cx, int cy, TRACK_OBJ* obj,
     ImageProcess(src, cur);
     int ccx = round(cx / p->track_scale);
     int ccy = round(cy / p->track_scale);
-    obj->update(ccx - 30, ccy -30, 60 , 90);
+    obj->update(int(ccx - p->roi_w/2), int(ccy -p->roi_h/2), p->roi_w , p->roi_h);
     obj->update();
     roi->update(obj->sx - 10, obj->sy - 10, obj->w + 20, obj->h +20);
     roi->update();
@@ -122,7 +122,7 @@ int Tracking::TrackerInitFx(cuda::GpuMat& src, int index, int cx, int cy, TRACK_
     gcur.download(cur);
     int ccx = round(cx / p->track_scale);
     int ccy = round(cy / p->track_scale);
-    obj->update(ccx - 30, ccy -30, 60 , 90);
+    obj->update(int(ccx - p->roi_w/2), int(ccy -p->roi_h/2), p->roi_w , p->roi_h);    
     obj->update();
     roi->update(obj->sx - 10, obj->sy - 10, obj->w + 20, obj->h +20);
     roi->update();

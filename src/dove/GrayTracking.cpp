@@ -38,7 +38,7 @@ void GrayTracking::SetBg(Mat& src, int frame_id) {
     }    
     calcHist(&bg, 1, 0, Mat(), hist, 1, &histbin, 0);
     // for (int i = 0 ; i < histbin; i ++){
-    //      dl.Logger(" [%d] hist %d \n", i , (int)hist.at<float>(i));
+    //      Cmd_DEBUG(" [{}d] hist {} \n", i , (int)hist.at<float>(i));
     // }
 
     cv::minMaxLoc(hist, &minval, &maxval, &minloc, &maxloc, Mat());
@@ -117,7 +117,6 @@ void GrayTracking::SetBg(cuda::GpuMat& src, int frame_id) {
             lut.at<unsigned char>(i) = i;
         else 
             lut.at<unsigned char>(i) = 255;
-        //printf(" [%d] lut--  %d \n", i , lut.at<unsigned char>(i));            
     }
 
     cuda::GpuMat gt; 
@@ -190,7 +189,7 @@ int GrayTracking::TrackerUpdate(cuda::GpuMat& src, int index, TRACK_OBJ* obj, TR
     int result = -1;
     cuda::GpuMat cur;
     ImageProcess(src, cur);
-    //dl.Logger("TrackerUpdate cos/row %d %d st_frame %d index %d", cur.cols, cur.rows, start_frame, index);
+    CMd_INFO("TrackerUpdate cos/row {} {} st_frame {} index {}", cur.cols, cur.rows, start_frame, index);
     cuda::subtract(bgg, cur, diffg);
     //float diff_val = cuda::sum(diff)[0] / (scale_w * scale_h);
     /* if you need to check the same image, please uncommnet these block.
@@ -243,7 +242,7 @@ int GrayTracking::TrackerUpdate(Mat& src, int index, TRACK_OBJ* obj, TRACK_OBJ* 
     int result = -1;
     Mat cur; Mat dst;
     ImageProcess(src, cur);
-    //dl.Logger("TrackerUpdate cos/row %d %d st_frame %d index %d", cur.cols, cur.rows, start_frame, index);
+    //CMd_INFO("TrackerUpdate cos/row {} {} st_frame {} index {}", cur.cols, cur.rows, start_frame, index);
     cv::subtract(bg, cur, diff);
     float diff_val = cv::sum(diff)[0]/(scale_w * scale_h);
     /* if you need to check the same image, please uncommnet these block.
@@ -270,7 +269,7 @@ int GrayTracking::TrackerUpdate(Mat& src, int index, TRACK_OBJ* obj, TRACK_OBJ* 
 }
 
 int GrayTracking::TrackerInitPost(Point& max, TRACK_OBJ* obj, TRACK_OBJ* roi) {
-    obj->update(max.x - 30, max.y - 30, 60, 90);
+    obj->update(int(max.x - p->roi_w/2), int(max.y - p->roi_h/2), p->roi_w, p->roi_h);
     obj->update();
     roi->update(obj->sx - 10, obj->sy - 10, obj->w + 20, obj->h + 20);
     roi->update();
@@ -286,7 +285,7 @@ int GrayTracking::TrackerInitPost(Point& max, TRACK_OBJ* obj, TRACK_OBJ* roi) {
 
 int GrayTracking::TrackerUpdatePost(TRACK_OBJ* obj, TRACK_OBJ* roi) {
     bool ret = tracker->update(diff, rect_roi);
-    //dl.Logger("tracker update %d %d %d %d ", rect_roi.x, rect_roi.y, rect_roi.width, rect_roi.height);
+    //CMd_INFO("tracker update {} {} {} {} ", rect_roi.x, rect_roi.y, rect_roi.width, rect_roi.height);
    
     if (ret == false) {
         CMd_WARN("tracker miss --------------------------------------------");
