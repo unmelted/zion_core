@@ -49,7 +49,7 @@ void CMdLogger::Init()
 {
 	spdlog::flush_every(std::chrono::seconds(1));
 	auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-	console_sink->set_level(spdlog::level::trace);
+	console_sink->set_level(spdlog::level::debug);
 	auto console_link = std::make_shared<spdlog::sinks::dist_sink_mt>();
 	console_link->add_sink(console_link);
 
@@ -57,13 +57,15 @@ void CMdLogger::Init()
 	fileName += Configurator::Get().getCurrentDateTime("date") + ".txt";
 
 	auto file_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(fileName, 1024 * 1000 * 10, 10);
-	file_sink->set_level(spdlog::level::trace);
+	file_sink->set_level(spdlog::level::debug);
 	auto file_link = std::make_shared < spdlog::sinks::dist_sink_mt>();
 	file_link->add_sink(file_sink);
 
 	spdlog::sinks_init_list sink_list = { console_sink, file_sink };
 
 	_logger = std::make_shared<spdlog::logger>("CMd", sink_list);
+	_logger->set_level(spdlog::level::debug);	
+	/*
 	int get = 1;
 	switch (get)
 	{
@@ -85,7 +87,7 @@ void CMdLogger::Init()
 	case 5:
 		_logger->set_level(spdlog::level::critical);
 		break;
-	}
+	}*/
 
 	// Note: Writing PID to the log file is mandatory because MMd(MMC, esp.) can execute multiple processes in one PC.
 	//       You can't get proper log files without it because spdlog doesn't support the multiple process.

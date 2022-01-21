@@ -52,7 +52,7 @@ void Dove::ConvertToParam(VIDEO_INFO* info) {
     _out = info->output;
     p->event = info->event;
     int size = info->swipe_period.size();
-    CMd_DEBUG("Conver To Param swipe period size %d", size);
+    CMd_DEBUG("Conver To Param swipe period size {}", size);
     for(int i = 0 ; i < size; i ++)
     {
         SWIPE_INFO one;
@@ -63,15 +63,15 @@ void Dove::ConvertToParam(VIDEO_INFO* info) {
         one.target_y = info->swipe_period[i].target_y;
         one.zoom = info->swipe_period[i].zoom;
         si.push_back(one);
-        CMd_DEBUG("SW Period %d %d ", one.start, one.end);
-        CMd_DEBUG("target %d %d zoom %d \n", one.target_x, one.target_y, one.zoom);        
+        CMd_DEBUG("SW Period {} {} ", one.start, one.end);
+        CMd_DEBUG("target {} {} zoom {}", one.target_x, one.target_y, one.zoom);        
     }
 
     if(info->width > 1920)
         p->scale = 2;
     else 
         p->scale = 1;
-    CMd_DEBUG("Video width %d, scale %f", info->width, p->scale);
+    CMd_DEBUG("Video width {}, scale {}", info->width, p->scale);
 
     if (p->event != FIGURE) {
         p->roi_input = true;
@@ -197,7 +197,6 @@ Dove::~Dove() {
 }
 
 int Dove::ProcessTemp() {
-    CMd_INFO("Process started ");    
     if(p->mode == OPTICALFLOW_LK_2DOF)
         ProcessLK();
     else if (p->mode == DETECT_TRACKING)
@@ -217,7 +216,7 @@ int Dove::Process() {
 
 #else
 //    VideoCapture in(_in);
-    VideoCapture in("movie/4dmaker_600.mp4");
+    VideoCapture in(_in);
 #endif
     Mat src1oc; Mat src1o;
     int frame_index = 0;
@@ -402,7 +401,7 @@ int Dove::Process() {
             } else {
                 smth.at<double>(0,2) = dx;
                 smth.at<double>(1,2) = dy;
-                CMd_DEBUG("[%d] will Apply {} {} ", frame_index, smth.at<double>(0,2), smth.at<double>(1,2));
+                CMd_DEBUG(" will Apply {} {} ", frame_index, smth.at<double>(0,2), smth.at<double>(1,2));
             }
             ApplyImageRef();
         }

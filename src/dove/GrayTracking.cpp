@@ -42,7 +42,7 @@ void GrayTracking::SetBg(Mat& src, int frame_id) {
     // }
 
     cv::minMaxLoc(hist, &minval, &maxval, &minloc, &maxloc, Mat());
-    CMd_INFO("searched minval {} maxval {} minloc {} {} maxloc {} [}", minval, maxval, minloc.x, minloc.y, maxloc.x, maxloc.y);
+    CMd_INFO("searched minval {} maxval {} minloc {} {} maxloc {} {}", minval, maxval, minloc.x, minloc.y, maxloc.x, maxloc.y);
     cut_threshold = maxloc.y * 0.83;
     lut = Mat::zeros(1, histbin, CV_8UC1);
     for (int i = 0 ; i < histbin; i ++){
@@ -62,7 +62,7 @@ void GrayTracking::SetBg(Mat& src, int frame_id) {
     clahe->apply(result, temp);
     GaussianBlur(temp, bg, {3, 3}, 1.3, 1.3);
     imwrite("cpu_bg.png", bg);
-    CMd_DEBUG("Setbg function finish {} [}] ", bg.cols, bg.rows);
+    CMd_DEBUG("Setbg function finish {} {} ", bg.cols, bg.rows);
 }
 
 void GrayTracking::ImageProcess(Mat& src, Mat& dst) {
@@ -109,7 +109,7 @@ void GrayTracking::SetBg(cuda::GpuMat& src, int frame_id) {
 
     cuda::calcHist(bgg, hist, cuda::Stream::Null());
     cuda::minMaxLoc(hist, &minval, &maxval, &minloc, &maxloc, noArray());
-    CMd_DEBUG("searched minval {} maxval {} minloc {} {} maxloc {} [}", minval, maxval, minloc.x, minloc.y, maxloc.x, maxloc.y);
+    CMd_DEBUG("searched minval {} maxval {} minloc {} {} maxloc {} {}", minval, maxval, minloc.x, minloc.y, maxloc.x, maxloc.y);
     cut_threshold = maxloc.x * 0.83;
     lut = Mat::zeros(1, histbin, CV_8UC1);
     for (int i = 0 ; i < histbin; i ++){
