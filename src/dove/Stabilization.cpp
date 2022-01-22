@@ -117,6 +117,8 @@ void Dove::Initialize() {
         p->limit_by = 350; // only use for mser detect
         p->roi_w = 60;
         p->roi_h = 90;
+        p->roi_w_default = 60;
+        p->roi_h_default = 90;
 
         p->swipe_threshold = 15;
         p->area_threshold = 200;
@@ -275,7 +277,14 @@ int Dove::Process() {
 #if defined GPU
             if (p->roi_input) {
                 p->roi_sx = si[swipe_index].target_x;
-                p->roi_sy = si[swipe_index].target_y;                    
+                p->roi_sy = si[swipe_index].target_y;  
+                p->roi_w = p->roi_w_default;
+                p->roi_h = p->roi_h_default;
+                if(si[swipe_index].zoom != 100) {
+                    p->roi_w = (p->roi_w_default) + ((si[swipe_index].zoom - 100) /4);
+                    p->roi_h = (p->roi_h_default) + ((si[swipe_index].zoom - 100) /4);
+                    CMd_DEBUG("zooming. roi : {} {}", p->roi_w, p->roi_h);
+                } 
                 tck->TrackerInitFx(src1og, frame_index, p->roi_sx, p->roi_sy, obj, roi);
             }
             else
@@ -284,6 +293,13 @@ int Dove::Process() {
             if(p->roi_input) {
                 p->roi_sx = si[swipe_index].target_x;
                 p->roi_sy = si[swipe_index].target_y;
+                p->roi_w = p->roi_w_default;
+                p->roi_h = p->roi_h_default;
+                if(si[swipe_index].zoom != 100) {                
+                    p->roi_w = (p->roi_w_default) + ((si[swipe_index].zoom - 100) /4);
+                    p->roi_h = (p->roi_h_default) + ((si[swipe_index].zoom - 100) /4);
+                    CMd_DEBUG("zooming. roi : {} {}", p->roi_w, p->roi_h);                    
+                }
                 tck->TrackerInitFx(src1o, frame_index, p->roi_sx, p->roi_sy, obj, roi);
             }
             else 
@@ -320,13 +336,12 @@ int Dove::Process() {
                 else {
                     t_frame_start = si[swipe_index].start;
                     t_frame_end = si[swipe_index].end;
-                }
-
 #if defined GPU
-                tck->SetBg(src1og, frame_index);
+                    tck->SetBg(src1og, frame_index);
 #else
-                tck->SetBg(src1o, frame_index);
+                    tck->SetBg(src1o, frame_index);
 #endif
+                }
             }
         }
 

@@ -61,8 +61,10 @@ using namespace cv;
 namespace dove {
 typedef enum _err {
     ERR_NONE = 0,
-    
     EXECUTE_CLIENT_EXCEPTION    = -30,
+    STABIL_MESSAGE_PARSING_ERR      = -40,    
+    STABIL_TARGET_PT_NOT_INSERTED   = -41,      
+    STABIL_PERIOD_NOT_INSERTED      = -42,  
     STABIL_COMPLETE             = 199,
 } ERR;
 
@@ -241,6 +243,8 @@ typedef struct _param {
     int limit_by;
     int roi_w;
     int roi_h;
+    int roi_w_default;
+    int roi_h_default;
     float area_threshold;
     float iou_threshold;
     float center_threshold;

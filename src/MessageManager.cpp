@@ -79,7 +79,8 @@ void* MsgManager::RcvMSGThread(void* arg) {
 			        CMd_INFO(" swipe period size {} ", info->swipe_period.size());
 					if (result == CMD::ERR_NONE) {
 						m_taskmanager.CommandTask(CMD::POST_STABILIZATION, info);
-					}
+					} else 
+						CMd_WARN(" Message is not compatible ERR: {} ", result);
 				}
 
 			}
@@ -100,7 +101,7 @@ void MsgManager::OnRcvMessage(char* pData) {
 }
 
 void MsgManager::OnRcvSndMessage(std::string msg) {
-	CMd_INFO("OnRcvSndMessage : {}", msg );
+	//CMd_INFO("OnRcvSndMessage : {}", msg );
 	std::shared_ptr<std::string> pmsg = make_shared<std::string>(msg);
 	m_qSMSG.Enqueue(pmsg);
 }

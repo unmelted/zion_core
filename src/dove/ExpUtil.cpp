@@ -29,10 +29,17 @@ int ExpUtil::ImportVideoInfo(const string js, VIDEO_INFO* info) {
         j = json::parse(js);
     }
 
+    if( j.contains("input") && j.contains("output") &&
+        j.contains("event") && j.contains("width") &&
+        j.contains("height") && j.contains("swipeperiod") ) {
+            CMd_DEBUG("Message parsing all component");
+        } else
+        return STABIL_MESSAGE_PARSING_ERR;
+
     info->input = j["input"];
     info->output = j["output"];
     string ev = j["event"];
-    cout << "event string : "<< ev << endl;
+
     if( ev.compare("FIGURE") == 0 )
         info->event = dove::FIGURE;
     else
@@ -54,12 +61,23 @@ int ExpUtil::ImportVideoInfo(const string js, VIDEO_INFO* info) {
     }
 
     std::sort(info->swipe_period.begin(), info->swipe_period.end(), [](SWIPE_INFO a, SWIPE_INFO b) {
-              return a.order < b.order;
-    });
-    cout<< "input : "<<info->input << endl;
-    cout<< "output : " <<info->output << endl;
-    cout<< "event : " <<info->event << endl;
-    cout <<" swipe cnt : " << info->swipe_period.size() << endl;
+              return a.order < b.order; });
+
+    CMd_INFO("input video : {}", info->input);
+    CMd_INFO("output : {}", info->output);
+    CMd_INFO("event : {}", info->event);
+    CMd_INFO("swipe period : {}", info->swipe_period.size());
+
+    //compatible check
+    if(info->swipe_period.size() == 0)
+        return dove::STABIL_PERIOD_NOT_INSERTED;
+
+    if (info->event != dove::FIGURE) {
+        for(int j = 0; j < info->swipe_period.size(); j ++){
+            if(info->swipe_period[j].target_x == -1 || info->swipe_period[j].target_x == -1)
+                return dove::STABIL_TARGET_PT_NOT_INSERTED;
+        }
+    }
     return ERR_NONE;
 }
 
