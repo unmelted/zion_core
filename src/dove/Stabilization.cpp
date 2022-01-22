@@ -141,6 +141,7 @@ void Dove::Initialize() {
         tck->SetInitialData(p);
     }
 
+    p->drop_threshold = p->dst_width;
     p->blur_size = 5;
     p->blur_sigma = 0.7;
     p->dst_width = 1920;
@@ -325,10 +326,15 @@ int Dove::Process() {
 
             dx = (pre_obj->cx - obj->cx) * p->track_scale;
             dy = (pre_obj->cy - obj->cy) * p->track_scale;
-            CMd_DEBUG("pre origin {} {} ", dx, dy);
-            FRAME_INFO one(frame_index, swipe_index, dx, dy);
-            all.push_back(one);               
-
+            if(dx > p->drop_threshold || dy > p->drop_threshold) {
+                CMd_DEBUG("remove frame occurred  {} {} ", dx, dy);
+                FRAME_INFO one(frame_index, true, swipe_index);
+                all.push_back(one);               
+            } else {
+                CMd_DEBUG("pre origin {} {} ", dx, dy);
+                FRAME_INFO one(frame_index, swipe_index, dx, dy);
+                all.push_back(one);               
+            }
             if(frame_index == t_frame_end) {
                 swipe_index++;
                 if(swipe_index == si.size())
@@ -344,6 +350,8 @@ int Dove::Process() {
                 }
             }
         }
+        if(final)
+            break;
 
         if (tck->isfound)
             obj->copy(pre_obj);        
@@ -353,6 +361,7 @@ int Dove::Process() {
     Rect mg;     
     MakeNewTrajectory(&mg);
 
+    int last_frame_index = frame_index;
     frame_index = 0;
     swipe_index = 0;
 #if defined GPU
@@ -400,25 +409,30 @@ int Dove::Process() {
         Mat canvas;
         canvas = Mat::zeros(p->dst_height, p->dst_width, CV_8UC3);
 #endif
-
-        if (all[frame_index].onswipe == true) {
-            double dx = -all[frame_index].new_dx;
-            double dy = -all[frame_index].new_dy;
-
-            if(p->run_kalman_post) {
-                double new_dx = 0;
-                double new_dy = 0;
-                al.KalmanInOutput(k, &an, dx, dy, frame_index, &new_dx, &new_dy);
-                CMd_DEBUG("post from kalman {} {} ", dx, dy);
-
-                smth.at<double>(0,2) = new_dx;
-                smth.at<double>(1,2) = new_dy;
+        bool skp = false;
+        if (all[frame_index].onswipe == true && frame_index < last_frame_index) {
+            if (all[frame_index].remove == true) {
+                CMd_WARN("frame drop apply . {}", frame_index);
+                skp = true;
             } else {
-                smth.at<double>(0,2) = dx;
-                smth.at<double>(1,2) = dy;
-                CMd_DEBUG(" {} will Apply {} {} ", frame_index, smth.at<double>(0,2), smth.at<double>(1,2));
+                double dx = -all[frame_index].new_dx;
+                double dy = -all[frame_index].new_dy;
+
+                if(p->run_kalman_post) {
+                    double new_dx = 0;
+                    double new_dy = 0;
+                    al.KalmanInOutput(k, &an, dx, dy, frame_index, &new_dx, &new_dy);
+                    CMd_DEBUG("post from kalman {} {} ", dx, dy);
+
+                    smth.at<double>(0,2) = new_dx;
+                    smth.at<double>(1,2) = new_dy;
+                } else {
+                    smth.at<double>(0,2) = dx;
+                    smth.at<double>(1,2) = dy;
+                    CMd_DEBUG(" {} will Apply {} {} ", frame_index, smth.at<double>(0,2), smth.at<double>(1,2));
+                }
+                ApplyImageRef();
             }
-            ApplyImageRef();
         }
         else {
 #if defined GPU
@@ -426,6 +440,11 @@ int Dove::Process() {
 #else
             refc.copyTo(refcw);
 #endif
+        }
+
+        if(skp) {
+            frame_index++;
+            continue;
         }
 
 #if defined GPU
@@ -563,7 +582,7 @@ int Dove::MakeNewTrajectory(Rect* mg) {
             al.BSplineTrajectory(cur_traj, &sp_yout, 1);    
 
             for(size_t i = 0, j = si[index].start +1; i < cur_traj.size(); i++, j++) {
-                CMd_DEBUG("spline output {} {} ", sp_xout[i].y, sp_yout[i].y);
+                //CMd_DEBUG("spline output {} {} ", sp_xout[i].y, sp_yout[i].y);
                 smoothed_traj.push_back(dove::Trajectory(sp_xout[i].y, sp_yout[i].y, 0));
                 out_smoothed << j << " " << sp_xout[i].y << " " << sp_yout[i].y << " " << "0" << endl;
             }
