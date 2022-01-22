@@ -49,7 +49,7 @@ void CMdLogger::Init()
 {
 	spdlog::flush_every(std::chrono::seconds(1));
 	auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-	console_sink->set_level(spdlog::level::debug);
+	console_sink->set_level(spdlog::level::trace);
 	auto console_link = std::make_shared<spdlog::sinks::dist_sink_mt>();
 	console_link->add_sink(console_link);
 
@@ -57,7 +57,7 @@ void CMdLogger::Init()
 	fileName += Configurator::Get().getCurrentDateTime("date") + ".txt";
 
 	auto file_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(fileName, 1024 * 1000 * 10, 10);
-	file_sink->set_level(spdlog::level::debug);
+	file_sink->set_level(spdlog::level::trace);
 	auto file_link = std::make_shared < spdlog::sinks::dist_sink_mt>();
 	file_link->add_sink(file_sink);
 

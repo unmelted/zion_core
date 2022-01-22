@@ -116,7 +116,7 @@ void Dove::Initialize() {
         p->limit_bx = 630; // only use for mser detect
         p->limit_by = 350; // only use for mser detect
         p->roi_w = 60;
-        p->roi_h = 900;
+        p->roi_h = 90;
 
         p->swipe_threshold = 15;
         p->area_threshold = 200;
@@ -401,7 +401,7 @@ int Dove::Process() {
             } else {
                 smth.at<double>(0,2) = dx;
                 smth.at<double>(1,2) = dy;
-                CMd_DEBUG(" will Apply {} {} ", frame_index, smth.at<double>(0,2), smth.at<double>(1,2));
+                CMd_DEBUG(" {} will Apply {} {} ", frame_index, smth.at<double>(0,2), smth.at<double>(1,2));
             }
             ApplyImageRef();
         }

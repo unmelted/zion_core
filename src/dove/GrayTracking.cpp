@@ -274,7 +274,7 @@ int GrayTracking::TrackerInitPost(Point& max, TRACK_OBJ* obj, TRACK_OBJ* roi) {
     roi->update(obj->sx - 10, obj->sy - 10, obj->w + 20, obj->h + 20);
     roi->update();
     CMd_DEBUG("gray obj {} {} {} {}", obj->sx, obj->sy, obj->w, obj->h);
-    CMd_DEBUG("gray roi {} {} {} [}", roi->sx, roi->sy, roi->w, roi->h);
+    CMd_DEBUG("gray roi {} {} {} {}", roi->sx, roi->sy, roi->w, roi->h);
     ConvertToRect(roi, &rect_roi);
     CMd_DEBUG("gray rect roi for tracker init {} {} {} {}", rect_roi.x, rect_roi.y, rect_roi.width, rect_roi.height);
     tracker->init(diff, rect_roi);
