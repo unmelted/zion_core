@@ -99,7 +99,7 @@ int ColoredTracking::TrackerInit(Mat& src, int index, TRACK_OBJ* obj, TRACK_OBJ*
     cv::minMaxLoc(diff, &minval, &maxval, &minloc, &maxloc, Mat());
     CMd_DEBUG("PickArea minval {} maxval {} minloc {} {} maxloc {} {}", minval, maxval, minloc.x, minloc.y, maxloc.x, maxloc.y);
     imwrite("cpu_diff.png", diff);
-    obj->update(maxloc.x -30, maxloc.y -30, 60, 90);
+    obj->update(int(maxloc.x - p->roi_w/2), int(maxloc.y -p->roi_h/2), p->roi_w , p->roi_h);    
     obj->update();
     roi->update(obj->sx - 10, obj->sy - 10, obj->w + 20, obj->h + 20);    
     roi->update();

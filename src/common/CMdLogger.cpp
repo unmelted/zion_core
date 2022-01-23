@@ -64,6 +64,8 @@ void CMdLogger::Init()
 	spdlog::sinks_init_list sink_list = { console_sink, file_sink };
 
 	_logger = std::make_shared<spdlog::logger>("CMd", sink_list);
+	_logger->set_level(spdlog::level::debug);	
+	/*
 	int get = 1;
 	switch (get)
 	{
@@ -85,7 +87,7 @@ void CMdLogger::Init()
 	case 5:
 		_logger->set_level(spdlog::level::critical);
 		break;
-	}
+	}*/
 
 	// Note: Writing PID to the log file is mandatory because MMd(MMC, esp.) can execute multiple processes in one PC.
 	//       You can't get proper log files without it because spdlog doesn't support the multiple process.

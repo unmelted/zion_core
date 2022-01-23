@@ -52,7 +52,7 @@ void Dove::ConvertToParam(VIDEO_INFO* info) {
     _out = info->output;
     p->event = info->event;
     int size = info->swipe_period.size();
-    CMd_DEBUG("Conver To Param swipe period size %d", size);
+    CMd_DEBUG("Conver To Param swipe period size {}", size);
     for(int i = 0 ; i < size; i ++)
     {
         SWIPE_INFO one;
@@ -63,15 +63,15 @@ void Dove::ConvertToParam(VIDEO_INFO* info) {
         one.target_y = info->swipe_period[i].target_y;
         one.zoom = info->swipe_period[i].zoom;
         si.push_back(one);
-        CMd_DEBUG("SW Period %d %d ", one.start, one.end);
-        CMd_DEBUG("target %d %d zoom %d \n", one.target_x, one.target_y, one.zoom);        
+        CMd_DEBUG("SW Period {} {} ", one.start, one.end);
+        CMd_DEBUG("target {} {} zoom {}", one.target_x, one.target_y, one.zoom);        
     }
 
     if(info->width > 1920)
         p->scale = 2;
     else 
         p->scale = 1;
-    CMd_DEBUG("Video width %d, scale %f", info->width, p->scale);
+    CMd_DEBUG("Video width {}, scale {}", info->width, p->scale);
 
     if (p->event != FIGURE) {
         p->roi_input = true;
@@ -111,12 +111,15 @@ void Dove::Initialize() {
         p->detector_type = BLOB_MSER;
         p->tracker_type = CSRT; //tracker_none;
         p->track_scale = 3;
-        p->limit_lx = 5;
-        p->limit_ly = 5;
-        p->limit_bx = 630;
-        p->limit_by = 350;
-        p->roi_w = 200;
-        p->roi_h = 160;
+        p->limit_lx = 5; // only use for mser detect
+        p->limit_ly = 5; // only use for mser detect
+        p->limit_bx = 630; // only use for mser detect
+        p->limit_by = 350; // only use for mser detect
+        p->roi_w = 60;
+        p->roi_h = 90;
+        p->roi_w_default = 60;
+        p->roi_h_default = 90;
+
         p->swipe_threshold = 15;
         p->area_threshold = 200;
         p->iou_threshold = 0.3;
@@ -138,6 +141,7 @@ void Dove::Initialize() {
         tck->SetInitialData(p);
     }
 
+    p->drop_threshold = p->dst_width;
     p->blur_size = 5;
     p->blur_sigma = 0.7;
     p->dst_width = 1920;
@@ -196,7 +200,6 @@ Dove::~Dove() {
 }
 
 int Dove::ProcessTemp() {
-    CMd_INFO("Process started ");    
     if(p->mode == OPTICALFLOW_LK_2DOF)
         ProcessLK();
     else if (p->mode == DETECT_TRACKING)
@@ -216,7 +219,7 @@ int Dove::Process() {
 
 #else
 //    VideoCapture in(_in);
-    VideoCapture in("movie/4dmaker_600.mp4");
+    VideoCapture in(_in);
 #endif
     Mat src1oc; Mat src1o;
     int frame_index = 0;
@@ -229,11 +232,9 @@ int Dove::Process() {
     Configurator::TIMER* tm = new Configurator::TIMER();    
     Configurator::Get().StartTimer(tm);
 
-    CMd_DEBUG("si %d %d   ",si[swipe_index].start, si[swipe_index].end);     
+    CMd_DEBUG("si {} {}  ",si[swipe_index].start, si[swipe_index].end);     
     int t_frame_start = si[swipe_index].start;
     int t_frame_end = si[swipe_index].end;
-    //test terminate
-    return STABIL_COMPLETE;
     
     while(true) {
 #if defined GPU
@@ -277,7 +278,14 @@ int Dove::Process() {
 #if defined GPU
             if (p->roi_input) {
                 p->roi_sx = si[swipe_index].target_x;
-                p->roi_sy = si[swipe_index].target_y;                    
+                p->roi_sy = si[swipe_index].target_y;  
+                p->roi_w = p->roi_w_default;
+                p->roi_h = p->roi_h_default;
+                if(si[swipe_index].zoom != 100) {
+                    p->roi_w = (p->roi_w_default) + ((si[swipe_index].zoom - 100) /4);
+                    p->roi_h = (p->roi_h_default) + ((si[swipe_index].zoom - 100) /4);
+                    CMd_DEBUG("zooming. roi : {} {}", p->roi_w, p->roi_h);
+                } 
                 tck->TrackerInitFx(src1og, frame_index, p->roi_sx, p->roi_sy, obj, roi);
             }
             else
@@ -286,6 +294,13 @@ int Dove::Process() {
             if(p->roi_input) {
                 p->roi_sx = si[swipe_index].target_x;
                 p->roi_sy = si[swipe_index].target_y;
+                p->roi_w = p->roi_w_default;
+                p->roi_h = p->roi_h_default;
+                if(si[swipe_index].zoom != 100) {                
+                    p->roi_w = (p->roi_w_default) + ((si[swipe_index].zoom - 100) /4);
+                    p->roi_h = (p->roi_h_default) + ((si[swipe_index].zoom - 100) /4);
+                    CMd_DEBUG("zooming. roi : {} {}", p->roi_w, p->roi_h);                    
+                }
                 tck->TrackerInitFx(src1o, frame_index, p->roi_sx, p->roi_sy, obj, roi);
             }
             else 
@@ -311,10 +326,15 @@ int Dove::Process() {
 
             dx = (pre_obj->cx - obj->cx) * p->track_scale;
             dy = (pre_obj->cy - obj->cy) * p->track_scale;
-            CMd_DEBUG("pre origin {} {} ", dx, dy);
-            FRAME_INFO one(frame_index, swipe_index, dx, dy);
-            all.push_back(one);               
-
+            if(dx > p->drop_threshold || dy > p->drop_threshold) {
+                CMd_DEBUG("remove frame occurred  {} {} ", dx, dy);
+                FRAME_INFO one(frame_index, true, swipe_index);
+                all.push_back(one);               
+            } else {
+                CMd_DEBUG("pre origin {} {} ", dx, dy);
+                FRAME_INFO one(frame_index, swipe_index, dx, dy);
+                all.push_back(one);               
+            }
             if(frame_index == t_frame_end) {
                 swipe_index++;
                 if(swipe_index == si.size())
@@ -322,15 +342,16 @@ int Dove::Process() {
                 else {
                     t_frame_start = si[swipe_index].start;
                     t_frame_end = si[swipe_index].end;
-                }
-
 #if defined GPU
-                tck->SetBg(src1og, frame_index);
+                    tck->SetBg(src1og, frame_index);
 #else
-                tck->SetBg(src1o, frame_index);
+                    tck->SetBg(src1o, frame_index);
 #endif
+                }
             }
         }
+        if(final)
+            break;
 
         if (tck->isfound)
             obj->copy(pre_obj);        
@@ -340,6 +361,7 @@ int Dove::Process() {
     Rect mg;     
     MakeNewTrajectory(&mg);
 
+    int last_frame_index = frame_index;
     frame_index = 0;
     swipe_index = 0;
 #if defined GPU
@@ -387,25 +409,30 @@ int Dove::Process() {
         Mat canvas;
         canvas = Mat::zeros(p->dst_height, p->dst_width, CV_8UC3);
 #endif
-
-        if (all[frame_index].onswipe == true) {
-            double dx = -all[frame_index].new_dx;
-            double dy = -all[frame_index].new_dy;
-
-            if(p->run_kalman_post) {
-                double new_dx = 0;
-                double new_dy = 0;
-                al.KalmanInOutput(k, &an, dx, dy, frame_index, &new_dx, &new_dy);
-                CMd_DEBUG("post from kalman {} {} ", dx, dy);
-
-                smth.at<double>(0,2) = new_dx;
-                smth.at<double>(1,2) = new_dy;
+        bool skp = false;
+        if (all[frame_index].onswipe == true && frame_index < last_frame_index) {
+            if (all[frame_index].remove == true) {
+                CMd_WARN("frame drop apply . {}", frame_index);
+                skp = true;
             } else {
-                smth.at<double>(0,2) = dx;
-                smth.at<double>(1,2) = dy;
-                CMd_DEBUG("[%d] will Apply {} {} ", frame_index, smth.at<double>(0,2), smth.at<double>(1,2));
+                double dx = -all[frame_index].new_dx;
+                double dy = -all[frame_index].new_dy;
+
+                if(p->run_kalman_post) {
+                    double new_dx = 0;
+                    double new_dy = 0;
+                    al.KalmanInOutput(k, &an, dx, dy, frame_index, &new_dx, &new_dy);
+                    CMd_DEBUG("post from kalman {} {} ", dx, dy);
+
+                    smth.at<double>(0,2) = new_dx;
+                    smth.at<double>(1,2) = new_dy;
+                } else {
+                    smth.at<double>(0,2) = dx;
+                    smth.at<double>(1,2) = dy;
+                    CMd_DEBUG(" {} will Apply {} {} ", frame_index, smth.at<double>(0,2), smth.at<double>(1,2));
+                }
+                ApplyImageRef();
             }
-            ApplyImageRef();
         }
         else {
 #if defined GPU
@@ -413,6 +440,11 @@ int Dove::Process() {
 #else
             refc.copyTo(refcw);
 #endif
+        }
+
+        if(skp) {
+            frame_index++;
+            continue;
         }
 
 #if defined GPU
@@ -550,7 +582,7 @@ int Dove::MakeNewTrajectory(Rect* mg) {
             al.BSplineTrajectory(cur_traj, &sp_yout, 1);    
 
             for(size_t i = 0, j = si[index].start +1; i < cur_traj.size(); i++, j++) {
-                CMd_DEBUG("spline output {} {} ", sp_xout[i].y, sp_yout[i].y);
+                //CMd_DEBUG("spline output {} {} ", sp_xout[i].y, sp_yout[i].y);
                 smoothed_traj.push_back(dove::Trajectory(sp_xout[i].y, sp_yout[i].y, 0));
                 out_smoothed << j << " " << sp_xout[i].y << " " << sp_yout[i].y << " " << "0" << endl;
             }

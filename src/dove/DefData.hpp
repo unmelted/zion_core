@@ -61,8 +61,10 @@ using namespace cv;
 namespace dove {
 typedef enum _err {
     ERR_NONE = 0,
-    
     EXECUTE_CLIENT_EXCEPTION    = -30,
+    STABIL_MESSAGE_PARSING_ERR      = -40,    
+    STABIL_TARGET_PT_NOT_INSERTED   = -41,      
+    STABIL_PERIOD_NOT_INSERTED      = -42,  
     STABIL_COMPLETE             = 199,
 } ERR;
 
@@ -241,12 +243,15 @@ typedef struct _param {
     int limit_by;
     int roi_w;
     int roi_h;
+    int roi_w_default;
+    int roi_h_default;
     float area_threshold;
     float iou_threshold;
     float center_threshold;
     bool keep_tracking;    
     float swipe_threshold;
 
+    int drop_threshold;
     //genearal
     int swipe_start;
     int swipe_end;    
@@ -408,19 +413,28 @@ typedef struct _analysis {
     
 
 typedef struct _frameinfo {
-    int index;
-    bool onswipe;
+    int index = 0;
+    bool onswipe = 0;
     int swipe_order;
-    int dx;
-    int dy;
+    int dx = 0;
+    int dy = 0;
     double new_dx = 0;
     double new_dy = 0;
+    bool remove = false;;
     _frameinfo() {};
     _frameinfo(int i) {
         index = i;
         onswipe = false;
         swipe_order = 0;
         dx = 0; dy = 0;
+        remove = false;
+    };    
+    _frameinfo(int i, bool r, int o) {
+        index = i;
+        onswipe = false;
+        swipe_order = o;
+        dx = 0; dy = 0;
+        remove = true;
     };    
     _frameinfo(int i, int o, int _dx, int _dy) {
         index = i;        
@@ -428,6 +442,7 @@ typedef struct _frameinfo {
         swipe_order = o;
         dx = _dx;
         dy = _dy;
+        remove = false;
     };
 
 } FRAME_INFO;

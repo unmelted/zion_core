@@ -138,8 +138,6 @@ void TaskManager::MakeSendMsg(std::shared_ptr<CMD::MSG_T> ptrMsg, int result) {
     if(result <  CMD::ERR_NONE) 
         return;
 
-    cout<< ptrMsg<< endl;
-    cout<< result << endl;;
     Document sndDoc(kObjectType);
     Document::AllocatorType& allocator = sndDoc.GetAllocator();
 
