@@ -15,6 +15,22 @@
 */
 
 #pragma once 
+
+#if defined _WIN_ || _WINDOWS
+#define _IMGDEBUG
+//#define _DEBUG
+#define GPU
+
+#include <opencv2/core/cuda.hpp>
+#include <opencv2/cudawarping.hpp>
+#include <opencv2/cudaimgproc.hpp>
+#include <opencv2/cudaarithm.hpp>
+#include <opencv2/cudafilters.hpp>
+#include <opencv2/cudacodec.hpp>
+#else
+//#define _DEBUG
+#endif
+
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -38,21 +54,6 @@
 #if defined _MAC_
 #include "darknet/yolo_v2_class.hpp"
 #define LOCAL_TEST
-#endif
-
-#if defined _WIN_ || _WINDOWS
-#define _IMGDEBUG
-#define _DEBUG
-#define GPU
-
-#include <opencv2/core/cuda.hpp>
-#include <opencv2/cudawarping.hpp>
-#include <opencv2/cudaimgproc.hpp>
-#include <opencv2/cudaarithm.hpp>
-#include <opencv2/cudafilters.hpp>
-#include <opencv2/cudacodec.hpp>
-#else
-//#define _DEBUG
 #endif
 
 

@@ -19,6 +19,7 @@
 #include "Stabilization.hpp"
 #if defined _WIN_ || _WINDOWS
 #include "FrTrans.h"
+#define WIN_TRANS
 #endif
 using namespace std;
 using namespace cv;
@@ -53,6 +54,12 @@ void Dove::ConvertToParam(VIDEO_INFO* info) {
     _in = info->input;
     _out = info->output;
     p->event = info->event;
+    if (info->width > 1920)
+        p->scale = 2;
+    else
+        p->scale = 1;
+
+    CMd_DEBUG("Video width {}, scale {}", info->width, p->scale);
     int size = info->swipe_period.size();
     CMd_DEBUG("Conver To Param swipe period size {}", size);
     for(int i = 0 ; i < size; i ++)
@@ -61,19 +68,13 @@ void Dove::ConvertToParam(VIDEO_INFO* info) {
         one.order = i;        
         one.start = info->swipe_period[i].start;
         one.end = info->swipe_period[i].end;
-        one.target_x = info->swipe_period[i].target_x;
-        one.target_y = info->swipe_period[i].target_y;
+        one.target_x = int(info->swipe_period[i].target_x / 2);
+        one.target_y = int(info->swipe_period[i].target_y / 2);
         one.zoom = info->swipe_period[i].zoom;
         si.push_back(one);
         CMd_DEBUG("SW Period {} {} ", one.start, one.end);
         CMd_DEBUG("target {} {} zoom {}", one.target_x, one.target_y, one.zoom);        
     }
-
-    if(info->width > 1920)
-        p->scale = 2;
-    else 
-        p->scale = 1;
-    CMd_DEBUG("Video width {}, scale {}", info->width, p->scale);
 
     if (p->event != FIGURE) {
         p->roi_input = true;
@@ -215,15 +216,18 @@ int Dove::ProcessTemp() {
 int Dove::Process() {
 
 #if defined GPU
-    cv::Ptr<cudacodec::VideoReader> in = cudacodec::createVideoReader(_in);
     cuda::GpuMat src1ocg; 
     cuda::GpuMat src1og;
 
+#ifdef WIN_TRANS
     // add win gpu
     std::string srcName = _in;
     std::string outName = _out;
     FrTrans trans;
     trans.OpenReader(srcName);
+#else
+    cv::Ptr<cudacodec::VideoReader> in = cudacodec::createVideoReader(_in);
+#endif
 
 #else
 //    VideoCapture in(_in);
@@ -246,20 +250,26 @@ int Dove::Process() {
     
     while(true) {
 #if defined GPU
-         if (!in->nextFrame(src1ocg))
-             break;
-
+#ifdef WIN_TRANS
          int ret = trans.ReadFrame(src1ocg);
-         if (ret < 0)
+         if (ret < 0) {
+             CMd_DEBUG("trans.readframe ret {} break.. ", ret);
              break;
-         else if (!ret)
+         }
+         else if (!ret) {
+             CMd_DEBUG("trans.readframe ret {} continue.. ", ret);
              continue;
+         }             
          //else {
          //    //cv::Mat img;
          //    //src1ocg.download(img);
 
          //    ImageProcess(src1ocg, src1og);
          //}
+#else
+        if (!in->nextFrame(src1ocg))
+            break;
+#endif
 #else 
         in >> src1oc;
         if(src1oc.data == NULL)
@@ -269,8 +279,14 @@ int Dove::Process() {
         if ( frame_index == 0)
         {                     
 #if defined GPU
+            CMd_DEBUG("ImageProcess() before.. ");
+            cv::Mat img;
+            src1ocg.download(img);
+            cv::imwrite("trans_img.png", img);
             ImageProcess(src1ocg, src1og);
+            CMd_DEBUG("ImageProcess() done..size :{}, {} ", src1og.cols, src1og.rows);
             tck->SetBg(src1og, frame_index);
+            CMd_DEBUG("tck->SetBg() frame_index {}.. ", frame_index);
 #else
             ImageProcess(src1oc, src1o);
             tck->SetBg(src1o, frame_index);
@@ -379,7 +395,9 @@ int Dove::Process() {
 
     // add win gpu
 #if defined GPU
+#ifdef WIN_TRANS
     trans.CloseReader();
+#endif
 #endif
 
     //dl.Logger("[%d] Image Analysis  %f ", i, LapTimer(all)); 
@@ -390,10 +408,8 @@ int Dove::Process() {
     frame_index = 0;
     swipe_index = 0;
 #if defined GPU
-    Ptr<cudacodec::VideoReader> in2 = cudacodec::createVideoReader(_in);
-    cv::VideoWriter out;
-    out.open(_out, VideoWriter::fourcc('A', 'V', 'C', '1'), 30, Size(p->dst_width, p->dst_height));
-
+    
+#ifdef WIN_TRANS
     // add win gpu
     trans.OpenReader(srcName);
     FrTrans::WRITER_CONTEXT_T wctx;
@@ -404,6 +420,12 @@ int Dove::Process() {
     wctx.gop = 1;
     trans.OpenWriter(wctx);
 #else
+    Ptr<cudacodec::VideoReader> in2 = cudacodec::createVideoReader(_in);
+    cv::VideoWriter out;
+    out.open(_out, VideoWriter::fourcc('A', 'V', 'C', '1'), 30, Size(p->dst_width, p->dst_height));
+#endif
+
+#else
     VideoCapture in2(_in);
     cv::VideoWriter out;  
     out.open(_out, VideoWriter::fourcc('A', 'V', 'C', '1'), 30, Size(p->dst_width, p->dst_height));
@@ -411,9 +433,8 @@ int Dove::Process() {
 
     while(true) {
 #if defined GPU
-        if (!in2->nextFrame(src1ocg))
-             break;
-
+        
+#ifdef WIN_TRANS
         // add win gpu
         int ret = trans.ReadFrame(src1ocg);
         if (ret < 0)
@@ -426,6 +447,10 @@ int Dove::Process() {
 
         //    ImageProcess(src1ocg, src1og);
         //}
+#else
+        if (!in2->nextFrame(src1ocg))
+             break;
+#endif
 
         //src1ocg.upload(src1oc);
         //ImageProcess(src1ocg, src1og);
@@ -506,16 +531,19 @@ int Dove::Process() {
 
 
 #if defined GPU
+#ifdef WIN_TRANS
         // add win gpu
         trans.WriteFrame(canvas);
-
+#else
         //out->write(canvas);
         //SetRefCG(src1ocg);
         Mat canvas_t;
         canvas.download(canvas_t);
         //sprintf(filename, "%d_canvas_t.png", i);
         //imwrite(filename, canvas_t);
+        
         out << canvas_t;
+#endif
         SetRefCG(src1ocg);
 #else
         out << canvas;        
@@ -525,10 +553,13 @@ int Dove::Process() {
     }
 
     CMd_DEBUG("Spend time :  {}", Configurator::Get().LapTimer(tm));
-    out.release();
 #ifdef GPU
+#ifdef WIN_TRANS
     trans.CloseReader();
     trans.CloseWriter();
+#else
+    out.release();
+#endif
 #endif
 
     return STABIL_COMPLETE;
@@ -569,6 +600,7 @@ int Dove::ImageProcess(cuda::GpuMat& src, cuda::GpuMat& dst) {
 int Dove::ImageProcess(Mat& src, Mat& dst) {
 #endif
 #if defined GPU
+    CMd_INFO("Dove::ImageProcess function start {} {}, scale: {}, colored: {} ", src.cols, src.rows, p->scale, p->colored);
     cuda::GpuMat temp;
     if (p->scale != 1) {
         cuda::resize(src, temp, Size(int((float)src.cols / p->scale), int(float(src.rows) / p->scale)), 0, 0, 1);
@@ -578,9 +610,22 @@ int Dove::ImageProcess(Mat& src, Mat& dst) {
 
     if (!p->colored) {
         cuda::GpuMat sub = cuda::GpuMat(Size(temp.cols, temp.rows), CV_8UC1, Scalar(19));
+#ifdef WIN_TRANS
+        cuda::cvtColor(temp, temp, cv::COLOR_BGR2GRAY);
+#else
         cuda::cvtColor(temp, temp, cv::COLOR_BGRA2GRAY);
+#endif
         cuda::subtract(temp, sub, dst);
     }
+    else {
+#ifdef WIN_TRANS
+        cuda::cvtColor(temp, temp, cv::COLOR_BGR2RGB);
+#endif
+        //cuda::cvtColor(temp, temp, cv::COLOR_BGRA2RGBA);
+        temp.copyTo(dst);
+    }
+
+    CMd_INFO("Dove::ImageProcess function end {} {}, scale: {}, colored: {} ", src.cols, src.rows, p->scale, p->colored);
 #else
     Mat temp;
     if(p->scale != 1)
