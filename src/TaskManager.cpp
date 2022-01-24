@@ -16,6 +16,7 @@
 
 #include "TaskManager.hpp"
 #include "MessageManager.hpp"
+#include "ExpUtil.hpp"
 
 using namespace TaskPool;
 using namespace rapidjson;
@@ -94,14 +95,24 @@ int TaskManager::RunStabilize(shared_ptr<VIDEO_INFO> arg)
     return result;
 } 
 
-int TaskManager::CommandTask(int mode, shared_ptr<VIDEO_INFO> arg) {
+int TaskManager::CommandTask(int mode, std::string arg) {
 
     if(cur_worker == num_worker)
         CMd_DEBUG("CMd Job Queue is fool. working worker + job = : {}", cur_worker);
     cur_worker++;
 
     if(mode == CMD::POST_STABILIZATION) {
-        EnqueueJob(&m_future, &TaskManager::RunStabilize, this, arg);
+        ExpUtil in;
+        shared_ptr<VIDEO_INFO>info = make_shared<VIDEO_INFO>();
+        int result = in.ImportVideoInfo(arg, info.get());
+        CMd_INFO(" swipe period size {} ", info->swipe_period.size());
+        if (result == CMD::ERR_NONE)        
+            EnqueueJob(&m_future, &TaskManager::RunStabilize, this, info);
+        else 
+            CMd_WARN(" Stabilization Message is not compatible ERR: {} ", result);
+
+    } else if (mode == CMD::UPDATE_CONFIGURE) {
+
     }
 
     return CMD::ERR_NONE;
