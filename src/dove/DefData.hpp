@@ -420,7 +420,7 @@ typedef struct _frameinfo {
     int dy = 0;
     double new_dx = 0;
     double new_dy = 0;
-    bool remove = false;;
+    bool remove = false;
     _frameinfo() {};
     _frameinfo(int i) {
         index = i;

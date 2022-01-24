@@ -45,8 +45,8 @@ public:
     map<int, DT_OBJECTS>objects;
     ofstream obj_trajectory;
     ofstream obj_c_trajectory;    
-    map<int, DT_XY>dt_comp;
 #endif
+    map<int, DT_XY>dt_comp;     // win compile
 
     vector<SWIPE_INFO> si;
     bool swipe_on;

@@ -15,9 +15,11 @@
 */
 
 
-#include "Stabilization.hpp"
 #include <thread>
-
+#include "Stabilization.hpp"
+#if defined _WIN_ || _WINDOWS
+#include "FrTrans.h"
+#endif
 using namespace std;
 using namespace cv;
 using namespace dove;
@@ -141,12 +143,12 @@ void Dove::Initialize() {
         tck->SetInitialData(p);
     }
 
-    p->drop_threshold = p->dst_width;
     p->blur_size = 5;
     p->blur_sigma = 0.7;
     p->dst_width = 1920;
     p->dst_height = 1080;
-
+    p->drop_threshold = p->dst_width;
+    
     if(p->run_detection == true) {
 #if defined _MAC_
         if(p->detector_type == DARKNET_YOLOV4) {
@@ -217,6 +219,12 @@ int Dove::Process() {
     cuda::GpuMat src1ocg; 
     cuda::GpuMat src1og;
 
+    // add win gpu
+    std::string srcName = _in;
+    std::string outName = _out;
+    FrTrans trans;
+    trans.OpenReader(srcName);
+
 #else
 //    VideoCapture in(_in);
     VideoCapture in(_in);
@@ -240,6 +248,18 @@ int Dove::Process() {
 #if defined GPU
          if (!in->nextFrame(src1ocg))
              break;
+
+         int ret = trans.ReadFrame(src1ocg);
+         if (ret < 0)
+             break;
+         else if (!ret)
+             continue;
+         //else {
+         //    //cv::Mat img;
+         //    //src1ocg.download(img);
+
+         //    ImageProcess(src1ocg, src1og);
+         //}
 #else 
         in >> src1oc;
         if(src1oc.data == NULL)
@@ -306,7 +326,6 @@ int Dove::Process() {
             else 
                 tck->TrackerInit(src1o, frame_index, obj, roi);
 #endif
-//            FRAME_INFO one(frame_index, swipe_index, 0, 0);
             FRAME_INFO one(frame_index);
             all.push_back(one);
         } 
@@ -326,8 +345,8 @@ int Dove::Process() {
 
             dx = (pre_obj->cx - obj->cx) * p->track_scale;
             dy = (pre_obj->cy - obj->cy) * p->track_scale;
-            if(dx > p->drop_threshold || dy > p->drop_threshold) {
-                CMd_DEBUG("remove frame occurred  {} {} ", dx, dy);
+            if(abs(dx) > p->drop_threshold || abs(dy) > p->drop_threshold) {
+                CMd_DEBUG("remove frame occurred  {} {} {} ", dx, dy, p->drop_threshold);
                 FRAME_INFO one(frame_index, true, swipe_index);
                 all.push_back(one);               
             } else {
@@ -358,6 +377,12 @@ int Dove::Process() {
         frame_index++;            
     }
 
+    // add win gpu
+#if defined GPU
+    trans.CloseReader();
+#endif
+
+    //dl.Logger("[%d] Image Analysis  %f ", i, LapTimer(all)); 
     Rect mg;     
     MakeNewTrajectory(&mg);
 
@@ -368,6 +393,16 @@ int Dove::Process() {
     Ptr<cudacodec::VideoReader> in2 = cudacodec::createVideoReader(_in);
     cv::VideoWriter out;
     out.open(_out, VideoWriter::fourcc('A', 'V', 'C', '1'), 30, Size(p->dst_width, p->dst_height));
+
+    // add win gpu
+    trans.OpenReader(srcName);
+    FrTrans::WRITER_CONTEXT_T wctx;
+    wctx.path = outName;
+    wctx.fps = 30;
+    wctx.width = p->dst_width;
+    wctx.height = p->dst_height;
+    wctx.gop = 1;
+    trans.OpenWriter(wctx);
 #else
     VideoCapture in2(_in);
     cv::VideoWriter out;  
@@ -378,6 +413,19 @@ int Dove::Process() {
 #if defined GPU
         if (!in2->nextFrame(src1ocg))
              break;
+
+        // add win gpu
+        int ret = trans.ReadFrame(src1ocg);
+        if (ret < 0)
+            break;
+        else if (!ret)
+            continue;
+        //else {
+        //    //cv::Mat img;
+        //    //src1ocg.download(img);
+
+        //    ImageProcess(src1ocg, src1og);
+        //}
 
         //src1ocg.upload(src1oc);
         //ImageProcess(src1ocg, src1og);
@@ -458,6 +506,9 @@ int Dove::Process() {
 
 
 #if defined GPU
+        // add win gpu
+        trans.WriteFrame(canvas);
+
         //out->write(canvas);
         //SetRefCG(src1ocg);
         Mat canvas_t;
@@ -475,6 +526,11 @@ int Dove::Process() {
 
     CMd_DEBUG("Spend time :  {}", Configurator::Get().LapTimer(tm));
     out.release();
+#ifdef GPU
+    trans.CloseReader();
+    trans.CloseWriter();
+#endif
+
     return STABIL_COMPLETE;
 }
 
