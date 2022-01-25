@@ -41,5 +41,5 @@ private :
 	TaskPool::TaskManager m_taskmanager;
     void* RcvMSGThread(void* arg);
     void* SndMSGThread(void* arg);
-
+    void SendVersionMessage(std::shared_ptr<CMD::MSG_T> ptrMsg);
 };

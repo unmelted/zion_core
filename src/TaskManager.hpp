@@ -34,6 +34,8 @@ public:
         fSendQue = que;
     };
 
+    void SendVersionMessage(std::shared_ptr<CMD::MSG_T> ptrMsg);    
+
 private:
     size_t num_worker;
     size_t cur_worker;

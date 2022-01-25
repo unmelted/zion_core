@@ -172,3 +172,31 @@ void TaskManager::MakeSendMsg(std::shared_ptr<CMD::MSG_T> ptrMsg, int result) {
     std::string strSendString = GetDocumentToString(sndDoc);
     m_msgmanager->OnRcvSndMessage(strSendString);
 }
+
+void TaskManager::SendVersionMessage(std::shared_ptr<CMD::MSG_T> ptrMsg) {
+	Document document;
+	document.Parse(ptrMsg->txt.c_str());
+	MTdProtocol mtdProtocol;
+    Document sndDoc(kObjectType);
+    Document::AllocatorType& allocator = sndDoc.GetAllocator();
+
+	Value ver(kObjectType);
+	Value cmd(kObjectType);
+	cmd.AddMember("verion", CURRENTVERSION, allocator);
+	cmd.AddMember("date", Configurator::Get().getCurrentDateTime("now"), allocator);
+	ver.AddMember("CMd", cmd, allocator);
+
+	sndDoc.AddMember(MTDPROTOCOL_SECTION1, mtdProtocol.Section1, allocator);
+	sndDoc.AddMember(MTDPROTOCOL_SECTION2, mtdProtocol.Section2, allocator);
+	sndDoc.AddMember(MTDPROTOCOL_SECTION3, mtdProtocol.Section3, allocator);
+	sndDoc.AddMember(MTDPROTOCOL_SENDSTATE, "response", allocator);
+	sndDoc.AddMember(MTDPROTOCOL_TOKEN, mtdProtocol.Token, allocator);
+	sndDoc.AddMember(MTDPROTOCOL_FROM, mtdProtocol.To, allocator);
+	sndDoc.AddMember(MTDPROTOCOL_TO, mtdProtocol.From, allocator);
+	sndDoc.AddMember(MTDPROTOCOL_ACTION, mtdProtocol.action, allocator);
+	sndDoc.AddMember("Version", ver, allocator);
+	sndDoc.AddMember(MTDPROTOCOL_RESULTCODE, COMMON_ERR_NONE, allocator);
+	sndDoc.AddMember(MTDPROTOCOL_ERRORMSG, "", allocator);
+    std::string strSendString = GetDocumentToString(sndDoc);
+    m_msgmanager->OnRcvSndMessage(strSendString);
+}
