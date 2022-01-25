@@ -110,7 +110,7 @@ public:
     int MakeMask();
     void ApplyImage(Mat& src, bool scaled = false);
     void ApplyImageRef();
-    void CalculcateMargin(double minx, double maxx, double miny, double maxy, Rect* mg);
+    int CalculcateMargin(double minx, double maxx, double miny, double maxy, Rect* mg);
 
     int stab_2dof(char* in, char* out, int coord[4]);
     int stab_fastwin(char* in, char* out, int coord[4]);

@@ -408,7 +408,9 @@ int Dove::Process() {
 
     //dl.Logger("[%d] Image Analysis  %f ", i, LapTimer(all)); 
     Rect mg;     
-    MakeNewTrajectory(&mg);
+    result = MakeNewTrajectory(&mg);
+    if(result != ERR_NONE)
+        return result;
 
     int last_frame_index = frame_index;
     frame_index = 0;
@@ -571,7 +573,7 @@ int Dove::Process() {
     return STABIL_COMPLETE;
 }
 
-void Dove::CalculcateMargin(double minx, double maxx, double miny, double maxy, Rect* mg) {
+int Dove::CalculcateMargin(double minx, double maxx, double miny, double maxy, Rect* mg) {
     // int mintop = abs(miny);
     // int minleft = abs(minx);
     int mx = max( abs(minx), maxx);
@@ -598,6 +600,10 @@ void Dove::CalculcateMargin(double minx, double maxx, double miny, double maxy, 
     mg->height = minbottom - mintop;
 
     CMd_DEBUG("Rect Margin {} {} {} {}", mg->x, mg->y, mg->width, mg->height);
+    if(mg->x >= 0 && mg->y >= 0 && mg->width >= 960 && mg->height >= 540)
+        return ERR_NONE;
+    else 
+        return STABIL_CANT_MAKE_PROPER_VIDEO;
 }
 
 #if defined GPU
@@ -739,9 +745,8 @@ int Dove::MakeNewTrajectory(Rect* mg) {
     }
     
     CMd_DEBUG("minx {} maxx {} miny {} maxy {}", minx, maxx, miny, maxy);
-    CalculcateMargin(minx, maxx, miny, maxy, mg);
-
-    return ERR_NONE;
+    int result = CalculcateMargin(minx, maxx, miny, maxy, mg);
+    return result;
 }
 
 int Dove::ProcessLK() {
