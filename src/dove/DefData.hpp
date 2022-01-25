@@ -66,7 +66,6 @@ typedef enum _err {
     STABIL_MESSAGE_PARSING_ERR      = -40,    
     STABIL_TARGET_PT_NOT_INSERTED   = -41,      
     STABIL_PERIOD_NOT_INSERTED      = -42,  
-    STABIL_NO_VIDEO_FILE_INPUT      = -43,
     STABIL_COMPLETE             = 199,
 } ERR;
 

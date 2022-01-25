@@ -15,7 +15,6 @@
 */
 
 #include "ExpUtil.hpp"
-#include <filesystem>
 
 using json = nlohmann::json;
 using namespace dove;
@@ -70,9 +69,6 @@ int ExpUtil::ImportVideoInfo(const string js, VIDEO_INFO* info) {
     CMd_INFO("swipe period : {}", info->swipe_period.size());
 
     //compatible check
-    if(std::filesystem::exists(info->input) == false)
-        return dove::STABIL_PERIOD_NOT_INSERTED;
-
     if(info->swipe_period.size() == 0)
         return dove::STABIL_PERIOD_NOT_INSERTED;
 
