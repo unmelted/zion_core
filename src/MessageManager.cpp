@@ -77,8 +77,8 @@ void* MsgManager::RcvMSGThread(void* arg) {
 				}
 				string section3 = j["Section3"];
 				string action = j["Action"];
-				if(section3 == "Version" && action == "set") {
-					m_taskmanager.SendVersionMessage(msg);
+				if(action == "set" && section3 == "Version") {
+					m_taskmanager.CommandTask(CMD::SEND_VERSION, msg->txt);
 				}
 				else if (action == "Stabilization" || section3 == "Stabilize") {
 					m_taskmanager.CommandTask(CMD::POST_STABILIZATION, msg->txt);

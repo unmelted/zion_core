@@ -113,6 +113,8 @@ int TaskManager::CommandTask(int mode, std::string arg) {
 
     } else if (mode == CMD::UPDATE_CONFIGURE) {
 
+    } else if (mode == CMD::SEND_VERSION) {
+        SendVersionMessage(arg);
     }
 
     return CMD::ERR_NONE;
@@ -173,9 +175,9 @@ void TaskManager::MakeSendMsg(std::shared_ptr<CMD::MSG_T> ptrMsg, int result) {
     m_msgmanager->OnRcvSndMessage(strSendString);
 }
 
-void TaskManager::SendVersionMessage(std::shared_ptr<CMD::MSG_T> ptrMsg) {
+void TaskManager::SendVersionMessage(std::string ptrMsg) {
 	Document document;
-	document.Parse(ptrMsg->txt.c_str());
+	document.Parse(ptrMsg.c_str());
     Document sndDoc(kObjectType);
     Document::AllocatorType& allocator = sndDoc.GetAllocator();
 
@@ -195,7 +197,7 @@ void TaskManager::SendVersionMessage(std::shared_ptr<CMD::MSG_T> ptrMsg) {
 	sndDoc.AddMember(MTDPROTOCOL_ACTION, document[MTDPROTOCOL_ACTION], allocator);
 	sndDoc.AddMember("Version", ver, allocator);
 	sndDoc.AddMember(MTDPROTOCOL_RESULTCODE, COMMON_ERR_NONE, allocator);
-	sndDoc.AddMember(MTDPROTOCOL_ERRORMSG, "", allocator);
+	sndDoc.AddMember(MTDPROTOCOL_ERRORMSG, "SUCCESS", allocator);
     std::string strSendString = GetDocumentToString(sndDoc);
     m_msgmanager->OnRcvSndMessage(strSendString);
 }
