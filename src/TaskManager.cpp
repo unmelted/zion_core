@@ -161,9 +161,11 @@ void TaskManager::MakeSendMsg(std::shared_ptr<CMD::MSG_T> ptrMsg, int result) {
         sndDoc.AddMember(MTDPROTOCOL_SECTION1, "4DReplay", allocator);
         sndDoc.AddMember(MTDPROTOCOL_SECTION2, "CM", allocator);
         sndDoc.AddMember(MTDPROTOCOL_SECTION3, "StabilizeDone", allocator);
-        sndDoc.AddMember(MTDPROTOCOL_TOKEN, str_token, allocator); // token..
+        sndDoc.AddMember(MTDPROTOCOL_SENDSTATE, "request", allocator);
+        sndDoc.AddMember(MTDPROTOCOL_TOKEN, str_token, allocator); //token..
         sndDoc.AddMember(MTDPROTOCOL_FROM, "CMd", allocator);
         sndDoc.AddMember(MTDPROTOCOL_TO, "4DPD", allocator);
+        sndDoc.AddMember(MTDPROTOCOL_ACTION, "set", allocator);
         sndDoc.AddMember("output", outfile, allocator);
     }
     
