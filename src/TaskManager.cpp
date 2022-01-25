@@ -148,8 +148,10 @@ std::string TaskManager::GetDocumentToString(Document& document)
 
 void TaskManager::MakeSendMsg(std::shared_ptr<CMD::MSG_T> ptrMsg, int result) {
 
-    if(result <  CMD::ERR_NONE) 
+    if(result <  CMD::ERR_NONE) {
+        CMd_WARN(" Captured future return is ERR {} ", result);        
         return;
+    }
 
     Document sndDoc(kObjectType);
     Document::AllocatorType& allocator = sndDoc.GetAllocator();

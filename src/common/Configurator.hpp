@@ -18,6 +18,7 @@
 #include <time.h>
 #include <chrono>
 #include <filesystem>
+#include "CMdLogger.hpp"
 
 class Configurator {
 

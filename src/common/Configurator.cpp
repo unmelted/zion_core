@@ -41,13 +41,16 @@ std::string Configurator::getCurrentDateTime(std::string s)
 }
 
 std::string Configurator::GenerateToken() {
+    CMd_INFO("Generate Token 1 ");
     char tk[100];
     std::string base = getCurrentDateTime("date");
     if(serial >= 9999)
         serial = 0;
     serial ++;
+    CMd_INFO("Generate Token 2 ");    
     sprintf(tk, "%s_%04d", base.c_str(), serial);
     std::string str_tk(tk);
+    CMd_INFO("Generate Token 3 {} ", str_tk);    
     return str_tk;    
 }
 
