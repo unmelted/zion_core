@@ -58,7 +58,8 @@ typedef enum _cmerr {
 
 typedef enum _cmdmode {
     DEFAULT_NONE = 0,
-    POST_STABILIZATION = 7,
+    POST_STABILIZATION  = 7,
+    UPDATE_CONFIGURE    = 10,
 
 } CMD_MODE;
 
@@ -104,4 +105,22 @@ typedef struct _MSG_T {
         bin_size = 0;
     }
 } MSG_T;
+
+typedef enum _event {
+    Default     = 1,
+    Hockey      = 2,
+    Figure      = 3,
+    ShortTrack  = 4,
+    SkiJump     = 5,
+    Basball     = 6,
+    Basketball  = 7,
+    Boxing      = 8,
+    Football    = 9,
+    Golf        = 10,
+    Soccer      = 11,
+    Taekwondo   = 12,
+    Tennis      = 13,
+    UFC         = 14,
+    Volleyball  = 15,
+}EVENT;
 }

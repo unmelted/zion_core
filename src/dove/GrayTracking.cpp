@@ -61,7 +61,7 @@ void GrayTracking::SetBg(Mat& src, int frame_id) {
     clahe->setClipLimit(20);
     clahe->apply(result, temp);
     GaussianBlur(temp, bg, {3, 3}, 1.3, 1.3);
-    imwrite("cpu_bg.png", bg);
+    imwrite("dump/cpu_bg.png", bg);
     CMd_DEBUG("Setbg function finish {} {} ", bg.cols, bg.rows);
 }
 
@@ -135,7 +135,7 @@ void GrayTracking::SetBg(cuda::GpuMat& src, int frame_id) {
     temp.release();
     
     bgg.download(check);
-    imwrite("gpu_bg2.png", check);
+    imwrite("dump/gpu_bg2.png", check);
     CMd_DEBUG("Setbg function finish {} {} ", bg.cols, bg.rows);
 }
 
@@ -172,7 +172,7 @@ int GrayTracking::TrackerInit(cuda::GpuMat& src, int index, TRACK_OBJ* obj, TRAC
     ImageProcess(src, cur);
     Mat cur_check;
     cur.download(cur_check);
-    imwrite("tracker_init.png", cur_check);
+    imwrite("dump/tracker_init.png", cur_check);
     CMd_DEBUG("PickArea cos/row {} {} st_frame {} index {}", cur.cols, cur.rows, start_frame, index);
     cuda::subtract(bgg, cur, diffg);
     //float diff_val = cuda::sum(diffg)[0] / (scale_w * scale_h);
@@ -180,7 +180,7 @@ int GrayTracking::TrackerInit(cuda::GpuMat& src, int index, TRACK_OBJ* obj, TRAC
     cuda::minMaxLoc(diffg, &minval, &maxval, &minloc, &maxloc, noArray());
     CMd_DEBUG("PickArea minval {} maxval {} minloc {} {} maxloc {} {}", minval, maxval, minloc.x, minloc.y, maxloc.x, maxloc.y);
     diffg.download(diff);
-    imwrite("gpu_diff.png", diff);
+    imwrite("dump/gpu_diff.png", diff);
     result = TrackerInitPost(maxloc, obj, roi);
     return result;    
 }
@@ -226,14 +226,14 @@ int GrayTracking::TrackerInit(Mat& src, int index, TRACK_OBJ* obj, TRACK_OBJ* ro
     Point minloc; Point maxloc;
     Mat cur; Mat dst;
     ImageProcess(src, cur);
-    imwrite("tracker_init_cpu.png", cur);
+    imwrite("dump/tracker_init_cpu.png", cur);
     CMd_DEBUG("PickArea cos/row {} {} st_frame {}  index {}", cur.cols, cur.rows, start_frame, index);
     cv::subtract(bg, cur, diff);
     //float diff_val = cv::sum(diff)[0]/(scale_w * scale_h);
 
     cv::minMaxLoc(diff, &minval, &maxval, &minloc, &maxloc, Mat());
     CMd_DEBUG("PickArea minval {} maxval {}  minloc {} {} maxloc {} {}", minval, maxval, minloc.x, minloc.y, maxloc.x, maxloc.y);
-    imwrite("cpu_diff.png", diff);
+    imwrite("dump/cpu_diff.png", diff);
     result = TrackerInitPost(maxloc, obj, roi);
     return result;       
 }

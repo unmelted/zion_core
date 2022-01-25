@@ -43,8 +43,9 @@ public:
     float LapTimer(TIMER *times);
 
     struct Path {
-        static inline const std::filesystem::path LOG {std::filesystem::current_path().append("Log") };
-        static inline const std::filesystem::path DUMP {std::filesystem::current_path().append("Dump") };
+        static inline const std::filesystem::path LOG {std::filesystem::current_path().append("log") };
+        static inline const std::filesystem::path ANLS {std::filesystem::current_path().append("analysis") };
+        static inline const std::filesystem::path DUMP {std::filesystem::current_path().append("dump") };
     };
 
     struct ConfigureValue{

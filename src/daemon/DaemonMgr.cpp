@@ -20,7 +20,7 @@ DaemonMgr::DaemonMgr()
 	m_dmServer.setHandler(std::bind(&DaemonMgr::Classfication, this, std::placeholders::_1, placeholders::_2, placeholders::_3));
 	m_manger.SetDMServer(&m_dmServer);	
 
-//	Configurator::SetDirectory();
+	Configurator::Get().SetDirectory();
 }
 
 DaemonMgr::~DaemonMgr()

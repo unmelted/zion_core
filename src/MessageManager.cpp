@@ -15,7 +15,6 @@
 */
 
 #include "MessageManager.hpp"
-#include "ExpUtil.hpp"
 #include "DefData.hpp"
 using json = nlohmann::json;
 
@@ -71,18 +70,11 @@ void* MsgManager::RcvMSGThread(void* arg) {
 			{
 				CMd_INFO("RcvMSGThread : {} ", msg->txt);
 				json j = json::parse(msg->txt);
+				string section3 = j["Section3"];
 				string action = j["Action"];
-				if (action == "Stabilization") {
-					ExpUtil in;
-					shared_ptr<VIDEO_INFO>info = make_shared<VIDEO_INFO>();
-					int result = in.ImportVideoInfo(msg->txt, info.get());
-			        CMd_INFO(" swipe period size {} ", info->swipe_period.size());
-					if (result == CMD::ERR_NONE) {
-						m_taskmanager.CommandTask(CMD::POST_STABILIZATION, info);
-					} else 
-						CMd_WARN(" Message is not compatible ERR: {} ", result);
+				if (action == "Stabilization" || section3 == "Stabilize") {
+					m_taskmanager.CommandTask(CMD::POST_STABILIZATION, msg->txt);
 				}
-
 			}
 		}
 		std::this_thread::sleep_for(std::chrono::milliseconds(3));

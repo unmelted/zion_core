@@ -29,7 +29,7 @@ public:
     template <class F, class... Args>
     void EnqueueJob( MessageQueue<int>* fu, F&& f, Args&&... args);
     void OnRcvTask(std::shared_ptr<CMD::MSG_T>pData);
-    int CommandTask(int mode, shared_ptr<VIDEO_INFO> arg);
+    int CommandTask(int mode, std::string arg);//shared_ptr<VIDEO_INFO> arg);
     void SetSndQue(std::function<void(MsgManager&, const std::string msg)> que) {
         fSendQue = que;
     };
