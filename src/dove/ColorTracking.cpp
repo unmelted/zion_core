@@ -103,7 +103,11 @@ int ColoredTracking::TrackerInit(Mat& src, int index, TRACK_OBJ* obj, TRACK_OBJ*
         maxloc.x = p->roi_w/2 + 10;
     if(maxloc.y <= 0 )
         maxloc.x = p->roi_h/2 + 10;
-
+    if(maxloc.x + p->roi_w/2 > p->limit_bx)
+        maxloc.x =  p->limit_bx - p->roi_w/2 - 10;
+    if(maxloc.y + p->roi_h/2 > p->limit_by)    
+        maxloc.y =  p->limit_by - p->roi_h/2 - 10;  
+        
     obj->update(int(maxloc.x - p->roi_w/2), int(maxloc.y -p->roi_h/2), p->roi_w , p->roi_h);    
     obj->update();
     roi->update(obj->sx - 10, obj->sy - 10, obj->w + 20, obj->h + 20);    
