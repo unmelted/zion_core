@@ -269,6 +269,11 @@ int GrayTracking::TrackerUpdate(Mat& src, int index, TRACK_OBJ* obj, TRACK_OBJ* 
 }
 
 int GrayTracking::TrackerInitPost(Point& max, TRACK_OBJ* obj, TRACK_OBJ* roi) {
+    if(max.x <= 0 )
+        max.x = p->roi_w/2 + 10;
+    if(max.y <= 0 )
+        max.x = p->roi_h/2 + 10;
+
     obj->update(int(max.x - p->roi_w/2), int(max.y - p->roi_h/2), p->roi_w, p->roi_h);
     obj->update();
     roi->update(obj->sx - 10, obj->sy - 10, obj->w + 20, obj->h + 20);
