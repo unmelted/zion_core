@@ -594,6 +594,18 @@ int Dove::CalculcateMargin(double minx, double maxx, double miny, double maxy, R
     else
         minright = minbottom * p->dst_width / p->dst_height;
 
+    int temp = 0;
+    if(minright < minleft) {
+        temp = minleft;
+        minleft = minright;
+        minright = temp;
+    }
+    if(minbottom < mintop){
+        temp = mintop;
+        mintop = minbottom;
+        minbottom = temp;
+    }
+    
     mg->x = minleft;
     mg->y = mintop;
     mg->width = minright - minleft;
