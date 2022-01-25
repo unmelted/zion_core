@@ -70,9 +70,9 @@ void* MsgManager::RcvMSGThread(void* arg) {
 			{
 				CMd_INFO("RcvMSGThread : {} ", msg->txt);
 				json j = json::parse(msg->txt);
-				string section3 = j["Sectioun3"];
+				string section3 = j["Section3"];
 				string action = j["Action"];
-				if (action == "Stabilization" || section3 == "Sabilize") {
+				if (action == "Stabilization" || section3 == "Stabilize") {
 					m_taskmanager.CommandTask(CMD::POST_STABILIZATION, msg->txt);
 				}
 			}
