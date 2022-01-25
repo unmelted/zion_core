@@ -62,14 +62,20 @@ void Dove::ConvertToParam(VIDEO_INFO* info) {
     CMd_DEBUG("Video width {}, scale {}", info->width, p->scale);
     int size = info->swipe_period.size();
     CMd_DEBUG("Conver To Param swipe period size {}", size);
-    for(int i = 0 ; i < size; i ++)
+    for (int i = 0; i < size; i++)
     {
         SWIPE_INFO one;
-        one.order = i;        
+        one.order = i;
         one.start = info->swipe_period[i].start;
         one.end = info->swipe_period[i].end;
-        one.target_x = int(info->swipe_period[i].target_x / 2);
-        one.target_y = int(info->swipe_period[i].target_y / 2);
+        if (info->swipe_period[i].target_x == -1 || info->swipe_period[i].target_y == -1) {
+            one.target_x = int(1920 / 2);
+            one.target_y = int(1080 / 2);
+        }
+        else {
+            one.target_x = int(info->swipe_period[i].target_x / 2);
+            one.target_y = int(info->swipe_period[i].target_y / 2);
+        }
         one.zoom = info->swipe_period[i].zoom;
         si.push_back(one);
         CMd_DEBUG("SW Period {} {} ", one.start, one.end);
@@ -282,7 +288,7 @@ int Dove::Process() {
             CMd_DEBUG("ImageProcess() before.. ");
             cv::Mat img;
             src1ocg.download(img);
-            cv::imwrite("trans_img.png", img);
+            cv::imwrite("dump/trans_img.png", img);
             ImageProcess(src1ocg, src1og);
             CMd_DEBUG("ImageProcess() done..size :{}, {} ", src1og.cols, src1og.rows);
             tck->SetBg(src1og, frame_index);
@@ -600,7 +606,7 @@ int Dove::ImageProcess(cuda::GpuMat& src, cuda::GpuMat& dst) {
 int Dove::ImageProcess(Mat& src, Mat& dst) {
 #endif
 #if defined GPU
-    CMd_INFO("Dove::ImageProcess function start {} {}, scale: {}, colored: {} ", src.cols, src.rows, p->scale, p->colored);
+    //CMd_INFO("Dove::ImageProcess function start {} {}, scale: {}, colored: {} ", src.cols, src.rows, p->scale, p->colored);
     cuda::GpuMat temp;
     if (p->scale != 1) {
         cuda::resize(src, temp, Size(int((float)src.cols / p->scale), int(float(src.rows) / p->scale)), 0, 0, 1);
@@ -625,7 +631,7 @@ int Dove::ImageProcess(Mat& src, Mat& dst) {
         temp.copyTo(dst);
     }
 
-    CMd_INFO("Dove::ImageProcess function end {} {}, scale: {}, colored: {} ", src.cols, src.rows, p->scale, p->colored);
+    //CMd_INFO("Dove::ImageProcess function end {} {}, scale: {}, colored: {} ", src.cols, src.rows, p->scale, p->colored);
 #else
     Mat temp;
     if(p->scale != 1)
@@ -782,7 +788,7 @@ int Dove::ProcessLK() {
             cv::resize(refcw, refcw, Size(p->dst_width, p->dst_height));
 
         out << refcw;        
-        sprintf(filename, "saved/%d_.png", i);
+        sprintf(filename, "dump/%d_.png", i);
         imwrite(filename, refcw);
 
         SetRef(src1o);
@@ -1059,7 +1065,7 @@ int Dove::MakeMask() {
     mask = Mat::zeros(p->dst_height, p->dst_width, CV_8UC1);
     mask.setTo(Scalar(255));
     rectangle(mask, Point(p->sx, p->sy), Point(p->sx + p->width, p->sy + p->height), Scalar(0), -1);
-    imwrite("saved/mask.png", mask);
+    imwrite("dump/mask.png", mask);
 
     return ERR_NONE;
 }

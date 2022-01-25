@@ -31,7 +31,7 @@ void ColoredTracking::SetBg(Mat& src, int frame_id) {
         scale_h = int(src.rows/p->track_scale);
         cv::resize(src, bg, Size(scale_w, scale_h));
     }
-    imwrite("cpu_bg.png", bg);
+    imwrite("dump/cpu_bg.png", bg);
     CMd_INFO("Colored Setbg function finish {} {} ", bg.cols, bg.rows);    
 }
 
@@ -53,7 +53,7 @@ void ColoredTracking::SetBg(cuda::GpuMat& src, int frame_id) {
         cuda::resize(src, src, Size(scale_w, scale_h));
     }
     src.download(bg);
-    imwrite("gpu_bg2.png", bg);    
+    imwrite("dump/gpu_bg2.png", bg);    
     CMd_INFO("Colored Setbg function finish {} {} ", bg.cols, bg.rows);    
 }
 
@@ -98,7 +98,7 @@ int ColoredTracking::TrackerInit(Mat& src, int index, TRACK_OBJ* obj, TRACK_OBJ*
 
     cv::minMaxLoc(diff, &minval, &maxval, &minloc, &maxloc, Mat());
     CMd_DEBUG("PickArea minval {} maxval {} minloc {} {} maxloc {} {}", minval, maxval, minloc.x, minloc.y, maxloc.x, maxloc.y);
-    imwrite("cpu_diff.png", diff);
+    imwrite("dump/cpu_diff.png", diff);
     obj->update(int(maxloc.x - p->roi_w/2), int(maxloc.y -p->roi_h/2), p->roi_w , p->roi_h);    
     obj->update();
     roi->update(obj->sx - 10, obj->sy - 10, obj->w + 20, obj->h + 20);    

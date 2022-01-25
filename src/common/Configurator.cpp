@@ -23,6 +23,7 @@ Configurator&  Configurator::Get() {
 
 void Configurator::SetDirectory() {
     std::filesystem::create_directories(Path::LOG);
+    std::filesystem::create_directories(Path::ANLS);
     std::filesystem::create_directories(Path::DUMP);    
 }
 
