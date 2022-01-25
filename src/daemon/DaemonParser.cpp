@@ -4,6 +4,7 @@
 #include <rapidjson/prettywriter.h>
 #include <set>
 #include <future>
+#include "Configurator.hpp"
 
 //#define PRINT_HTTP_REQ
 //#define PRINT_HTTP_RES
@@ -91,12 +92,18 @@ void DaemonParser::ParseThread(void* param, std::string strMessage)
 	string strSection2 = mtdProtocol.Section2;
 	string strSection3 = mtdProtocol.Section3;
 	string strAction = mtdProtocol.action;
-	if (strSection1.compare("1") == 0)
+	if (strSection1.compare("Daemon") == 0)
 	{
-		if (strSection2.compare("2") == 0)
+		if (strSection2.compare("Information") == 0)
 		{
-			if (strSection3.compare("3") == 0)
+			if (strSection3.compare("Version") == 0)
 			{
+				Value ver(kObjectType);
+				Value cmd(kObjectType);
+				cmd.AddMember("verion", CURRENTVERSION, allocator);
+				cmd.AddMember("date", Configurator::Get().getCurrentDateTime("now"), allocator);
+				ver.AddMember("CMd", cmd, allocator);
+				sendDocument.AddMember("Version", ver, allocator);				
 			}
 		}
 	}
