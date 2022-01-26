@@ -77,10 +77,7 @@ void* MsgManager::RcvMSGThread(void* arg) {
 				}
 				string section3 = j["Section3"];
 				string action = j["Action"];
-				if(action == "set" && section3 == "Version") {
-					m_taskmanager.CommandTask(CMD::SEND_VERSION, msg->txt);
-				}
-				else if (action == "Stabilization" || section3 == "Stabilize") {
+				if (action == "Stabilization" || section3 == "Stabilize") {
 					m_taskmanager.CommandTask(CMD::POST_STABILIZATION, msg->txt);
 				}
 			}
@@ -91,7 +88,7 @@ void* MsgManager::RcvMSGThread(void* arg) {
 	return nullptr;	
 }
 
-void MsgManager::OnRcvMessage(char* pData) {
+void MsgManager::OnRcvMessage(std::string pData) {
 
 	std::shared_ptr<CMD::MSG_T> ptrMsg = std::shared_ptr<CMD::MSG_T>(new CMD::MSG_T);
 	ptrMsg->type = CMD::PACKET_TYPE::TEXT;

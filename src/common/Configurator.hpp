@@ -18,6 +18,7 @@
 #include <time.h>
 #include <chrono>
 #include <filesystem>
+#include <fstream>
 #include "CMdLogger.hpp"
 
 class Configurator {
@@ -33,6 +34,7 @@ public:
         
     } TIMER;
 
+    int log_init;    
     static Configurator& Get();
     void SetDirectory();   
     std::string GenerateToken();     
@@ -47,6 +49,7 @@ public:
         static inline const std::filesystem::path LOG {std::filesystem::current_path().append("log") };
         static inline const std::filesystem::path ANLS {std::filesystem::current_path().append("analysis") };
         static inline const std::filesystem::path DUMP {std::filesystem::current_path().append("dump") };
+        static inline const std::filesystem::path INIF {std::filesystem::current_path().append("ini.json") };
     };
 
     struct ConfigureValue{

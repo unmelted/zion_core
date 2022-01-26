@@ -1,8 +1,8 @@
 #include "FrTrans.h"
 
 FrTrans::FrTrans() {
-    FrSetTraceFileName((char*)"stabilizer_test.log");
-    SetTraceLogLevel(FDR_LOG_LEVEL_INFO);
+    //FrSetTraceFileName((char*)"stabilizer_test.log");
+    //SetTraceLogLevel(FDR_LOG_LEVEL_INFO);
 }
 
 FrTrans::~FrTrans() {

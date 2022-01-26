@@ -15,12 +15,12 @@
 */
 
 
-#include <thread>
-#include "Stabilization.hpp"
 #if defined _WIN_ || _WINDOWS
 #include "FrTrans.h"
 #define WIN_TRANS
 #endif
+#include <thread>
+#include "Stabilization.hpp"
 using namespace std;
 using namespace cv;
 using namespace dove;
@@ -230,7 +230,11 @@ int Dove::Process() {
     std::string srcName = _in;
     std::string outName = _out;
     FrTrans trans;
-    trans.OpenReader(srcName);
+    int ret = trans.OpenReader(srcName);
+    if (ret < 0) {
+        CMd_ERROR("trans.openreader fail..ret:{}, name:{}", ret, srcName);
+        return EXECUTE_CLIENT_EXCEPTION;
+    }
 #else
     cv::Ptr<cudacodec::VideoReader> in = cudacodec::createVideoReader(_in);
 #endif
@@ -287,9 +291,10 @@ int Dove::Process() {
 #if defined GPU
             CMd_DEBUG("ImageProcess() before.. ");
             cv::Mat img;
-            src1ocg.download(img);
-            cv::imwrite("dump/trans_img.png", img);
             ImageProcess(src1ocg, src1og);
+            cv::Mat timg;
+            src1og.download(timg);
+            cv::imwrite("dump/frame0_proces.png", timg);
             CMd_DEBUG("ImageProcess() done..size :{}, {} ", src1og.cols, src1og.rows);
             tck->SetBg(src1og, frame_index);
             CMd_DEBUG("tck->SetBg() frame_index {}.. ", frame_index);
@@ -402,7 +407,9 @@ int Dove::Process() {
     // add win gpu
 #if defined GPU
 #ifdef WIN_TRANS
+    CMd_DEBUG("trans.CloseReader() start.. ");
     trans.CloseReader();
+    CMd_DEBUG("trans.CloseReader() finish.. ");
 #endif
 #endif
 
@@ -426,7 +433,9 @@ int Dove::Process() {
     wctx.width = p->dst_width;
     wctx.height = p->dst_height;
     wctx.gop = 1;
+    CMd_DEBUG("trans.OpenWriter start.. path:{}, fps:{}, w:{}, h:{}", wctx.path, wctx.fps, wctx.width, wctx.height);
     trans.OpenWriter(wctx);
+    CMd_DEBUG("trans.OpenWriter finish.. ");
 #else
     Ptr<cudacodec::VideoReader> in2 = cudacodec::createVideoReader(_in);
     cv::VideoWriter out;
@@ -643,7 +652,7 @@ int Dove::ImageProcess(Mat& src, Mat& dst) {
     }
     else {
 #ifdef WIN_TRANS
-        cuda::cvtColor(temp, temp, cv::COLOR_BGR2RGB);
+        cuda::cvtColor(temp, temp, cv::COLOR_RGB2BGR);
 #endif
         //cuda::cvtColor(temp, temp, cv::COLOR_BGRA2RGBA);
         temp.copyTo(dst);

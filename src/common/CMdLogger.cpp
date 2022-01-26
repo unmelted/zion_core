@@ -15,7 +15,7 @@
 */
 #include <sstream>
 #include <iomanip>
-
+#include <string>
 #include "CMdLogger.hpp"
 #include "Configurator.hpp"
 
@@ -54,7 +54,8 @@ void CMdLogger::Init()
 	console_link->add_sink(console_link);
 
 	std::string fileName("log/CMd_");
-	fileName += Configurator::Get().getCurrentDateTime("date") + ".txt";
+	fileName += Configurator::Get().getCurrentDateTime("date") + std::to_string(Configurator::Get().log_init) + ".txt";
+	Configurator::Get().log_init++;
 
 	auto file_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(fileName, 1024 * 1000 * 10, 10);
 	file_sink->set_level(spdlog::level::trace);

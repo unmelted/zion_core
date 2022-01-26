@@ -16,6 +16,9 @@
 
 #include "Configurator.hpp"
 
+#include "json.hpp"
+using json = nlohmann::json;
+
 Configurator&  Configurator::Get() {
     static Configurator _instance;
     return _instance;
@@ -24,7 +27,20 @@ Configurator&  Configurator::Get() {
 void Configurator::SetDirectory() {
     std::filesystem::create_directories(Path::LOG);
     std::filesystem::create_directories(Path::ANLS);
-    std::filesystem::create_directories(Path::DUMP);    
+    std::filesystem::create_directories(Path::DUMP);   
+
+    json j;
+    std::ifstream json_file(Path::INIF);
+    if(json_file) {
+        json_file >> j;
+        if(j.contains("logv") == true) {
+            log_init = j["logv"];
+            CMd_INFO("Start log file : {}", log_init);
+        } else 
+            log_init = 1;        
+    } else
+        log_init = 1;
+    
 }
 
 std::string Configurator::getCurrentDateTime(std::string s)

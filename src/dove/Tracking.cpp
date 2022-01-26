@@ -132,7 +132,7 @@ int Tracking::TrackerInitFx(cuda::GpuMat& src, int index, int cx, int cy, TRACK_
     CMd_DEBUG("tracker init fix  rect fx roi for tracker init {} {} {} {}", rect_roi.x, rect_roi.y, rect_roi.width, rect_roi.height);
     tracker->init(cur, rect_roi);
     isfound = true;
-
+    CMd_DEBUG("trackier init complete");
     return ERR_NONE;
 }
 #endif

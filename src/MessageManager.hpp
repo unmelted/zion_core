@@ -23,8 +23,8 @@ public:
 
     MsgManager();
     ~MsgManager();
-	void OnRcvMessage(char* pData);
-	void OnRcvSndMessage(std::string);
+	void OnRcvMessage(std::string pData);
+	void OnRcvSndMessage(std::string msg);
 	void SetDMServer(DMServer* dmServer);
 	DMServer* GetDMServer();
 

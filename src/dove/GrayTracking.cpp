@@ -103,9 +103,9 @@ void GrayTracking::SetBg(cuda::GpuMat& src, int frame_id) {
     Mat hist_t;
     bgg.download(check);
     calcHist(&check, 1, 0, Mat(), hist_t, 1, &histbin, 0);
-    for (int i = 0 ; i < histbin; i ++){
-        CMd_DEBUG(" [{}] hist_t {} \n", i , (int)hist_t.at<float>(i));
-    }
+    //for (int i = 0 ; i < histbin; i ++){
+    //    CMd_DEBUG(" [{}] hist_t {} \n", i , (int)hist_t.at<float>(i));
+    //}
 
     cuda::calcHist(bgg, hist, cuda::Stream::Null());
     cuda::minMaxLoc(hist, &minval, &maxval, &minloc, &maxloc, noArray());
