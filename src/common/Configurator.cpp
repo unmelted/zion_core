@@ -16,6 +16,9 @@
 
 #include "Configurator.hpp"
 
+#include "json.hpp"
+using json = nlohmann::json;
+
 Configurator&  Configurator::Get() {
     static Configurator _instance;
     return _instance;
@@ -24,7 +27,20 @@ Configurator&  Configurator::Get() {
 void Configurator::SetDirectory() {
     std::filesystem::create_directories(Path::LOG);
     std::filesystem::create_directories(Path::ANLS);
-    std::filesystem::create_directories(Path::DUMP);    
+    std::filesystem::create_directories(Path::DUMP);   
+
+    json j;
+    std::ifstream json_file(Path::INIF);
+    if(json_file) {
+        json_file >> j;
+        if(j.contains("logv") == true) {
+            log_init = j["logv"];
+            CMd_INFO("Start log file : {}", log_init);
+        } else 
+            log_init = 1;        
+    } else
+        log_init = 1;
+    
 }
 
 std::string Configurator::getCurrentDateTime(std::string s)
@@ -41,13 +57,16 @@ std::string Configurator::getCurrentDateTime(std::string s)
 }
 
 std::string Configurator::GenerateToken() {
+    CMd_INFO("Generate Token 1 ");
     char tk[100];
     std::string base = getCurrentDateTime("date");
     if(serial >= 9999)
         serial = 0;
     serial ++;
+    CMd_INFO("Generate Token 2 ");    
     sprintf(tk, "%s_%04d", base.c_str(), serial);
     std::string str_tk(tk);
+    CMd_INFO("Generate Token 3 {} ", str_tk);    
     return str_tk;    
 }
 

@@ -58,6 +58,7 @@ typedef enum _cmerr {
 
 typedef enum _cmdmode {
     DEFAULT_NONE = 0,
+    SEND_VERSION        = 6,
     POST_STABILIZATION  = 7,
     UPDATE_CONFIGURE    = 10,
 

@@ -113,6 +113,8 @@ int TaskManager::CommandTask(int mode, std::string arg) {
 
     } else if (mode == CMD::UPDATE_CONFIGURE) {
 
+    } else if (mode == CMD::SEND_VERSION) {
+        SendVersionMessage(arg);
     }
 
     return CMD::ERR_NONE;
@@ -146,8 +148,10 @@ std::string TaskManager::GetDocumentToString(Document& document)
 
 void TaskManager::MakeSendMsg(std::shared_ptr<CMD::MSG_T> ptrMsg, int result) {
 
-    if(result <  CMD::ERR_NONE) 
+    if(result <  CMD::ERR_NONE) {
+        CMd_WARN(" Captured future return is ERR {} ", result);        
         return;
+    }
 
     Document sndDoc(kObjectType);
     Document::AllocatorType& allocator = sndDoc.GetAllocator();
@@ -161,12 +165,41 @@ void TaskManager::MakeSendMsg(std::shared_ptr<CMD::MSG_T> ptrMsg, int result) {
         sndDoc.AddMember(MTDPROTOCOL_SECTION1, "4DReplay", allocator);
         sndDoc.AddMember(MTDPROTOCOL_SECTION2, "CM", allocator);
         sndDoc.AddMember(MTDPROTOCOL_SECTION3, "StabilizeDone", allocator);
-        sndDoc.AddMember(MTDPROTOCOL_TOKEN, str_token, allocator); // token..
+        sndDoc.AddMember(MTDPROTOCOL_SENDSTATE, "request", allocator);
+        sndDoc.AddMember(MTDPROTOCOL_TOKEN, str_token, allocator); //token..
         sndDoc.AddMember(MTDPROTOCOL_FROM, "CMd", allocator);
         sndDoc.AddMember(MTDPROTOCOL_TO, "4DPD", allocator);
+        sndDoc.AddMember(MTDPROTOCOL_ACTION, "set", allocator);
         sndDoc.AddMember("output", outfile, allocator);
     }
     
+    std::string strSendString = GetDocumentToString(sndDoc);
+    m_msgmanager->OnRcvSndMessage(strSendString);
+}
+
+void TaskManager::SendVersionMessage(std::string ptrMsg) {
+	Document document;
+	document.Parse(ptrMsg.c_str());
+    Document sndDoc(kObjectType);
+    Document::AllocatorType& allocator = sndDoc.GetAllocator();
+
+	Value ver(kObjectType);
+	Value cmd(kObjectType);
+	cmd.AddMember("verion", CURRENTVERSION, allocator);
+	cmd.AddMember("date", Configurator::Get().getCurrentDateTime("now"), allocator);
+	ver.AddMember("CMd", cmd, allocator);
+
+	sndDoc.AddMember(MTDPROTOCOL_SECTION1, document[MTDPROTOCOL_SECTION1], allocator);
+	sndDoc.AddMember(MTDPROTOCOL_SECTION2, document[MTDPROTOCOL_SECTION2], allocator);
+	sndDoc.AddMember(MTDPROTOCOL_SECTION3, document[MTDPROTOCOL_SECTION3], allocator);
+	sndDoc.AddMember(MTDPROTOCOL_SENDSTATE, "response", allocator);
+	sndDoc.AddMember(MTDPROTOCOL_TOKEN, document[MTDPROTOCOL_TOKEN], allocator);
+	sndDoc.AddMember(MTDPROTOCOL_FROM, document[MTDPROTOCOL_TO], allocator);
+	sndDoc.AddMember(MTDPROTOCOL_TO, document[MTDPROTOCOL_FROM], allocator);
+	sndDoc.AddMember(MTDPROTOCOL_ACTION, document[MTDPROTOCOL_ACTION], allocator);
+	sndDoc.AddMember("Version", ver, allocator);
+	sndDoc.AddMember(MTDPROTOCOL_RESULTCODE, COMMON_ERR_NONE, allocator);
+	sndDoc.AddMember(MTDPROTOCOL_ERRORMSG, "SUCCESS", allocator);
     std::string strSendString = GetDocumentToString(sndDoc);
     m_msgmanager->OnRcvSndMessage(strSendString);
 }

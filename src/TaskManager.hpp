@@ -53,7 +53,8 @@ private:
     void WatchFuture();
     int RunStabilize(shared_ptr<VIDEO_INFO> arg);
     void MakeSendMsg(std::shared_ptr<CMD::MSG_T> ptrMsg, int result);
-
+    
+    void SendVersionMessage(std::string ptrMsg);    
     std::string GetDocumentToString(Document& document);
 };
 

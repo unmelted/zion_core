@@ -103,9 +103,9 @@ void GrayTracking::SetBg(cuda::GpuMat& src, int frame_id) {
     Mat hist_t;
     bgg.download(check);
     calcHist(&check, 1, 0, Mat(), hist_t, 1, &histbin, 0);
-    for (int i = 0 ; i < histbin; i ++){
-        CMd_DEBUG(" [{}] hist_t {} \n", i , (int)hist_t.at<float>(i));
-    }
+    //for (int i = 0 ; i < histbin; i ++){
+    //    CMd_DEBUG(" [{}] hist_t {} \n", i , (int)hist_t.at<float>(i));
+    //}
 
     cuda::calcHist(bgg, hist, cuda::Stream::Null());
     cuda::minMaxLoc(hist, &minval, &maxval, &minloc, &maxloc, noArray());
@@ -189,7 +189,7 @@ int GrayTracking::TrackerUpdate(cuda::GpuMat& src, int index, TRACK_OBJ* obj, TR
     int result = -1;
     cuda::GpuMat cur;
     ImageProcess(src, cur);
-    CMd_INFO("TrackerUpdate cos/row {} {} st_frame {} index {}", cur.cols, cur.rows, start_frame, index);
+    //CMd_INFO("TrackerUpdate cos/row {} {} st_frame {} index {}", cur.cols, cur.rows, start_frame, index);
     cuda::subtract(bgg, cur, diffg);
     //float diff_val = cuda::sum(diff)[0] / (scale_w * scale_h);
     /* if you need to check the same image, please uncommnet these block.
@@ -269,6 +269,15 @@ int GrayTracking::TrackerUpdate(Mat& src, int index, TRACK_OBJ* obj, TRACK_OBJ* 
 }
 
 int GrayTracking::TrackerInitPost(Point& max, TRACK_OBJ* obj, TRACK_OBJ* roi) {
+    if(max.x <= 0 )
+        max.x = p->roi_w/2 + 10;
+    if(max.y <= 0 )
+        max.x = p->roi_h/2 + 10;
+    if(max.x + p->roi_w/2 > p->limit_bx)
+        max.x =  p->limit_bx - p->roi_w/2 - 10;
+    if(max.y + p->roi_h/2 > p->limit_by)    
+        max.y =  p->limit_by - p->roi_h/2 - 10;        
+
     obj->update(int(max.x - p->roi_w/2), int(max.y - p->roi_h/2), p->roi_w, p->roi_h);
     obj->update();
     roi->update(obj->sx - 10, obj->sy - 10, obj->w + 20, obj->h + 20);

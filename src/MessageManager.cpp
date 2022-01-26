@@ -70,6 +70,11 @@ void* MsgManager::RcvMSGThread(void* arg) {
 			{
 				CMd_INFO("RcvMSGThread : {} ", msg->txt);
 				json j = json::parse(msg->txt);
+				if(j.contains("Action") == false || j.contains("Section3") == false)
+				{
+					CMd_WARN("Json component missing. can't execute.");
+					continue;
+				}
 				string section3 = j["Section3"];
 				string action = j["Action"];
 				if (action == "Stabilization" || section3 == "Stabilize") {
@@ -83,7 +88,7 @@ void* MsgManager::RcvMSGThread(void* arg) {
 	return nullptr;	
 }
 
-void MsgManager::OnRcvMessage(char* pData) {
+void MsgManager::OnRcvMessage(std::string pData) {
 
 	std::shared_ptr<CMD::MSG_T> ptrMsg = std::shared_ptr<CMD::MSG_T>(new CMD::MSG_T);
 	ptrMsg->type = CMD::PACKET_TYPE::TEXT;

@@ -23,8 +23,8 @@ public:
 
     MsgManager();
     ~MsgManager();
-	void OnRcvMessage(char* pData);
-	void OnRcvSndMessage(std::string);
+	void OnRcvMessage(std::string pData);
+	void OnRcvSndMessage(std::string msg);
 	void SetDMServer(DMServer* dmServer);
 	DMServer* GetDMServer();
 
@@ -41,5 +41,5 @@ private :
 	TaskPool::TaskManager m_taskmanager;
     void* RcvMSGThread(void* arg);
     void* SndMSGThread(void* arg);
-
+    void SendVersionMessage(std::shared_ptr<CMD::MSG_T> ptrMsg);
 };
