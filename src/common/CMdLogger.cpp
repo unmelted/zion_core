@@ -18,6 +18,8 @@
 #include <string>
 #include "CMdLogger.hpp"
 #include "Configurator.hpp"
+#include "json.hpp"
+using json = nlohmann::json;
 
 enum class CMdLoggerLevel : int
 {
@@ -45,6 +47,19 @@ CMdLogger::~CMdLogger()
 	CMd_INFO("Logger End!");
 }
 
+int CMdLogger::GetLogV() {
+	json j;
+	int log_init = 1;
+	std::ifstream json_file(Configurator::Path::INIF);
+	if (json_file) {
+		json_file >> j;
+		if (j.contains("logv") == true) {
+			log_init = j["logv"];
+			CMd_INFO("Start log file : {}", log_init);
+		}
+	}
+	return log_init;
+}
 void CMdLogger::Init()
 {
 	spdlog::flush_every(std::chrono::seconds(1));
@@ -54,8 +69,7 @@ void CMdLogger::Init()
 	console_link->add_sink(console_link);
 
 	std::string fileName("log/CMd_");
-	fileName += Configurator::Get().getCurrentDateTime("date") + std::to_string(Configurator::Get().log_init) + ".txt";
-	Configurator::Get().log_init++;
+	fileName += Configurator::Get().getCurrentDateTime("date") + "_" + std::to_string(GetLogV()) + ".txt";
 
 	auto file_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(fileName, 1024 * 1000 * 10, 10);
 	file_sink->set_level(spdlog::level::trace);

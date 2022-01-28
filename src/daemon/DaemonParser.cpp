@@ -100,7 +100,7 @@ void DaemonParser::ParseThread(void* param, std::string strMessage)
 			{
 				Value ver(kObjectType);
 				Value cmd(kObjectType);
-				cmd.AddMember("verion", CURRENTVERSION, allocator);
+				cmd.AddMember("version", CURRENTVERSION, allocator);
 				cmd.AddMember("date", Configurator::Get().getCurrentDateTime("now"), allocator);
 				ver.AddMember("CMd", cmd, allocator);
 				sendDocument.AddMember("Version", ver, allocator);				

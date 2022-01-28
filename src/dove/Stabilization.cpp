@@ -530,6 +530,7 @@ int Dove::Process() {
 #else
             refc.copyTo(refcw);
 #endif
+            CMd_DEBUG("Frame {}", frame_index);
         }
 
         if(skp) {

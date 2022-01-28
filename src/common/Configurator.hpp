@@ -34,7 +34,6 @@ public:
         
     } TIMER;
 
-    int log_init;    
     static Configurator& Get();
     void SetDirectory();   
     std::string GenerateToken();     
