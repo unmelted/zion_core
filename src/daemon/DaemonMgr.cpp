@@ -64,9 +64,11 @@ int DaemonMgr::RecJson(std::string strMessage)
 	}
 
 	std::string sec3 = document[MTDPROTOCOL_SECTION3].GetString();
-	if(sec3.compare("Version"))
+	CMd_INFO("RecJson sec3 : {} compare {}", sec3, sec3.compare("Version"));
+	if(sec3.compare("Version") == 0) {
 		m_parser.RunParse(strMessage);
-	else if(sec3.compare("Stabilize")) {
+	}
+	else if(sec3.compare("Stabilize") == 0) {
 		m_parser.RunParse(strMessage);		
 		m_manger.OnRcvMessage(strMessage);
 	}

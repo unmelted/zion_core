@@ -5,6 +5,7 @@
 #include <set>
 #include <future>
 #include "Configurator.hpp"
+#include "CMdLogger.hpp"
 
 //#define PRINT_HTTP_REQ
 //#define PRINT_HTTP_RES
@@ -92,6 +93,8 @@ void DaemonParser::ParseThread(void* param, std::string strMessage)
 	string strSection2 = mtdProtocol.Section2;
 	string strSection3 = mtdProtocol.Section3;
 	string strAction = mtdProtocol.action;
+	CMd_DEBUG("sction {} {} {}", strSection1, strSection2, strSection3);
+
 	if (strSection1.compare("Daemon") == 0)
 	{
 		if (strSection2.compare("Information") == 0)
@@ -100,11 +103,11 @@ void DaemonParser::ParseThread(void* param, std::string strMessage)
 			{
 				Value ver(kObjectType);
 				Value cmd(kObjectType);
-				cmd.AddMember("verion", CURRENTVERSION, allocator);
+				cmd.AddMember("version", CURRENTVERSION, allocator);
 				cmd.AddMember("date", Configurator::Get().getCurrentDateTime("now"), allocator);
 				ver.AddMember("CMd", cmd, allocator);
 				sendDocument.AddMember("Version", ver, allocator);				
-				cout << "version process " << endl;
+				CMd_INFO("version process.");
 			}
 		}
 	}

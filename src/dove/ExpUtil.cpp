@@ -20,10 +20,10 @@
 using json = nlohmann::json;
 using namespace dove;
 
-int ExpUtil::ImportVideoInfo(const string js, VIDEO_INFO* info) {
+int ExpUtil::ImportVideoInfo(const string js, VIDEO_INFO* info, bool filemode) {
     json j;    
 
-    if(json_file_mode == true) {
+    if(filemode == true) {
         ifstream json_file(js);
         json_file >> j;
     } else {
@@ -76,15 +76,14 @@ int ExpUtil::ImportVideoInfo(const string js, VIDEO_INFO* info) {
     if(info->swipe_period.size() == 0)
         return dove::STABIL_PERIOD_NOT_INSERTED;
 
-    if (info->event != dove::FIGURE) {
-        for(int j = 0; j < info->swipe_period.size(); j ++){
-            if(info->swipe_period[j].target_x == -1 && info->swipe_period[j].target_y == -1) {
-                info->swipe_period[j].target_x = 1920;
-                info->swipe_period[j].target_y = 1080;
-            } else if (info->swipe_period[j].target_x < -1 || info->swipe_period[j].target_y < -1)
-                return dove::STABIL_TARGET_PT_NOT_INSERTED;
-        }
+    for(int j = 0; j < info->swipe_period.size(); j ++){
+        if(info->swipe_period[j].target_x == -1 && info->swipe_period[j].target_y == -1) {
+            info->swipe_period[j].target_x = 1920;
+            info->swipe_period[j].target_y = 1080;
+        } else if (info->swipe_period[j].target_x < -1 || info->swipe_period[j].target_y < -1)
+            return dove::STABIL_TARGET_PT_NOT_INSERTED;
     }
+
     return ERR_NONE;
 }
 
