@@ -24,8 +24,7 @@ using namespace dove;
 class ExpUtil {
 
 public:
-    bool json_file_mode = false;
-    int ImportVideoInfo(const string js, VIDEO_INFO* info);
+    int ImportVideoInfo(const string js, VIDEO_INFO* info, bool filemode = false);
     void TestGetSwipeInfo(string _in, PARAM* p);
 
 private:

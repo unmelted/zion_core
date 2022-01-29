@@ -364,7 +364,7 @@ int Dove::Process() {
 #endif            
         }
 
-        //tck->DrawObjectTracking(src1o, obj, roi, false);
+        tck->DrawObjectTracking(src1o, obj, roi, false);
         double dx = 0;
         double dy = 0;
         double da = 0;
