@@ -25,6 +25,7 @@ add_definitions(-D_IMGDEBUG)
 add_definitions(-DOPENCV)
 
 if(APPLE)
+    message("APPLE TRUE")
     add_definitions(-D_MAC_)
 else ()
     add_definitions(-D_WIN_)
@@ -47,7 +48,7 @@ file(GLOB PRJ_SRC   ${PRJ_PATH}/src/*.cpp
                     ${PRJ_PATH}/src/dove/*.cpp
 )
 
-if( ${PLATFORM} STREQUAL "MACsM1" )
+if( ${PLATFORM} STREQUAL "MACM1" )
     list(REMOVE_ITEM PRJ_SRC ${PRJ_PATH}/src/FrTrans.cpp)
 endif()
 
