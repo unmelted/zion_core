@@ -67,6 +67,7 @@ typedef enum _err {
     STABIL_TARGET_PT_NOT_INSERTED   = -41,      
     STABIL_PERIOD_NOT_INSERTED      = -42,  
     STABIL_CANT_MAKE_PROPER_VIDEO   = -43,
+    STABIL_CANT_DECODE_FILE         = -44,
     STABIL_COMPLETE             = 199,
 } ERR;
 
@@ -268,6 +269,8 @@ typedef struct _param {
 
     int dst_width;
     int dst_height;
+
+    int read_wait;
 
     bool has_mask; //no use
 }PARAM;

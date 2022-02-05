@@ -10,13 +10,13 @@ import random
 # 2018_02_09_17_58_50_0.mp4_stab start = 64 end = 88
 # 2018_02_25_09_55_28.mp4_stab start = 58 end = 91
 # 2018_02_13_19_37_53_0.mp4_stab start = 51 end 84
-out = cv2.VideoWriter('test_out.mp4', cv2.VideoWriter_fourcc(*"MJPG"), 30,(1920, 1080))
-datapath = "/Users/4dreplay/work/data/winter/frames/data/2018_02_13_19_37_53_0.mp4_stab"
+out = cv2.VideoWriter('test_figure_out.mp4', cv2.VideoWriter_fourcc(*"MJPG"), 30,(1920, 1080))
+datapath = "/Users/kelly/work/zion_mac/py/frames2"
 imglist = os.listdir(datapath)
 imglist.sort()
 
-start = 51
-end = 84
+start = 121
+end = 157
 
 want_cnt = 10
 index = 0

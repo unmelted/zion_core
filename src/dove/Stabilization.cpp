@@ -198,6 +198,8 @@ void Dove::Initialize() {
     smth.at<double>(0,1) = 0; 
     smth.at<double>(1,0) = 0; 
     smth.at<double>(1,1) = 1;      
+    p->read_wait = 1000; //msec
+
     CMd_INFO("Initialized compelete.");    
 }
 
@@ -257,7 +259,7 @@ int Dove::Process() {
     CMd_DEBUG("si {} {}  ",si[swipe_index].start, si[swipe_index].end);     
     int t_frame_start = si[swipe_index].start;
     int t_frame_end = si[swipe_index].end;
-    
+    int retry_cnt = 0;
     while(true) {
 #if defined GPU
 #ifdef WIN_TRANS
@@ -268,6 +270,10 @@ int Dove::Process() {
          }
          else if (!ret) {
              CMd_DEBUG("trans.readframe ret {} continue.. ", ret);
+             std::this_thread::sleep_for(std::chrono::milliseconds(100));
+             retry_cnt++;
+             if (p->read_wait <= retry_cnt * 100)
+                 return STABIL_CANT_DECODE_FILE;
              continue;
          }             
          //else {
@@ -302,10 +308,12 @@ int Dove::Process() {
             ImageProcess(src1oc, src1o);
             tck->SetBg(src1o, frame_index);
 #endif
-            FRAME_INFO one(frame_index);
-            all.push_back(one);
-            frame_index++;
-            continue;
+            if (frame_index != t_frame_start) {
+                FRAME_INFO one(frame_index);
+                all.push_back(one);
+                frame_index++;
+                continue;
+            }
         }
                 
         if(frame_index < t_frame_start || frame_index > t_frame_end || final == true) {
@@ -364,7 +372,7 @@ int Dove::Process() {
 #endif            
         }
 
-        tck->DrawObjectTracking(src1o, obj, roi, false);
+        //tck->DrawObjectTracking(src1o, obj, roi, false);
         double dx = 0;
         double dy = 0;
         double da = 0;

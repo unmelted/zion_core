@@ -142,7 +142,7 @@ int Tracking::TrackerInitFx(cuda::GpuMat& src, int index, int cx, int cy, TRACK_
     //img debug
     Mat du;
     cur.copyTo(du);
-    circle(du, Point(ccx, ccy) 3, Scalar(255, 0, 0), -1);    
+    circle(du, Point(ccx, ccy), 3, Scalar(255, 0, 0), -1);    
     imwrite("dump/track_initfx.png", du);
     return ERR_NONE;
 }
