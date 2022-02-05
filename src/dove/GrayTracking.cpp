@@ -233,7 +233,7 @@ int GrayTracking::TrackerInit(Mat& src, int index, TRACK_OBJ* obj, TRACK_OBJ* ro
 
     cv::minMaxLoc(diff, &minval, &maxval, &minloc, &maxloc, Mat());
     CMd_DEBUG("PickArea minval {} maxval {}  minloc {} {} maxloc {} {}", minval, maxval, minloc.x, minloc.y, maxloc.x, maxloc.y);
-    imwrite("dump/cpu_diff.png", diff);
+    //imwrite("dump/cpu_diff.png", diff);
     result = TrackerInitPost(maxloc, obj, roi);
     return result;       
 }
@@ -287,6 +287,12 @@ int GrayTracking::TrackerInitPost(Point& max, TRACK_OBJ* obj, TRACK_OBJ* roi) {
     ConvertToRect(roi, &rect_roi);
     CMd_DEBUG("gray rect roi for tracker init {} {} {} {}", rect_roi.x, rect_roi.y, rect_roi.width, rect_roi.height);
     tracker->init(diff, rect_roi);
+    //img debug    
+    Mat du;
+    diff.copyTo(du);
+    circle(du, Point(max.x, max.y), 3, Scalar(255, 0, 0), -1);    
+    imwrite("dump/track_initfx.png", du);
+
     isfound = true;
     //DrawObjectTracking(diff, obj, roi, false, 1);
     return ERR_NONE;
