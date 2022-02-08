@@ -19,6 +19,7 @@
 #include "DefData.hpp"
 #if defined _MAC_
 #include "Detection.hpp"
+#include "CMdLogger.hpp"
 #endif
 #include "ColorTracking.hpp"
 #include "GrayTracking.hpp"
@@ -45,6 +46,7 @@ public:
     map<int, DT_OBJECTS>objects;
     ofstream obj_trajectory;
     ofstream obj_c_trajectory;    
+    CMdLogger _logger;
 #endif
     map<int, DT_XY>dt_comp;     // win compile
 

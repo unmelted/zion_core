@@ -110,11 +110,14 @@ int Tracking::TrackerInitFx(Mat& src, int index, int cx, int cy, TRACK_OBJ* obj,
     ConvertToRect(roi, &rect_roi);
     CMd_DEBUG("tracker init fix  rect fx roi for tracker init {} {} {} {}", rect_roi.x, rect_roi.y, rect_roi.width, rect_roi.height);
     tracker->init(cur, rect_roi);
+    
     //img debug    
     Mat du;
     cur.copyTo(du);
     circle(du, Point(ccx, ccy), 3, Scalar(255, 0, 0), -1);    
-    imwrite("dump/track_initfx.png", du);
+    char fname[200];
+    sprintf(fname, "dump/track_initfx_%s.png", Configurator::Get().getCurrentDateTime("now").c_str());
+    imwrite(fname, du);
 
     isfound = true;
 
@@ -139,11 +142,14 @@ int Tracking::TrackerInitFx(cuda::GpuMat& src, int index, int cx, int cy, TRACK_
     tracker->init(cur, rect_roi);
     isfound = true;
     CMd_DEBUG("trackier init complete");
+
     //img debug
     Mat du;
     cur.copyTo(du);
     circle(du, Point(ccx, ccy), 3, Scalar(255, 0, 0), -1);    
-    imwrite("dump/track_initfx.png", du);
+    char fname[200];
+    sprintf(fname, "dump/track_initfx_%s.png", Configurator::Get().getgetCurrentDateTime("now").c_str());
+    imwrite(fname, du);
     return ERR_NONE;
 }
 #endif

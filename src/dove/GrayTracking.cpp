@@ -291,7 +291,9 @@ int GrayTracking::TrackerInitPost(Point& max, TRACK_OBJ* obj, TRACK_OBJ* roi) {
     Mat du;
     diff.copyTo(du);
     circle(du, Point(max.x, max.y), 3, Scalar(255, 0, 0), -1);    
-    imwrite("dump/track_initfx.png", du);
+    char fname[200];
+    sprintf(fname, "dump/track_init_%s.png", Configurator::Get().getCurrentDateTime("now").c_str());
+    imwrite(fname, du);    
 
     isfound = true;
     //DrawObjectTracking(diff, obj, roi, false, 1);

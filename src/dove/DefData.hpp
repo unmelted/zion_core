@@ -157,6 +157,12 @@ typedef struct _trackobj {
         ex = sx + w;
         ey = sy + h;
     }
+    void clear() {
+        sx = 0; sy = 0;
+        w = 0; h = 0;
+        cx = 0; cy = 0;
+        ex = 0; ey = 0;
+    }
     int GetArea() {
         return w * h;
     }

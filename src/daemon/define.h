@@ -18,4 +18,4 @@ struct MTdProtocol {
 	std::string Token;
 };
 
-#define CURRENTVERSION "4.1.0.1"
+#define CURRENTVERSION "4.1.0.2"

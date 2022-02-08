@@ -78,8 +78,8 @@ int ExpUtil::ImportVideoInfo(const string js, VIDEO_INFO* info, bool filemode) {
 
     for(int j = 0; j < info->swipe_period.size(); j ++){
         if(info->swipe_period[j].target_x == -1 && info->swipe_period[j].target_y == -1) {
-            info->swipe_period[j].target_x = 1920;
-            info->swipe_period[j].target_y = 1080;
+            info->swipe_period[j].target_x = 1920 /2;
+            info->swipe_period[j].target_y = 1080 /2;
         } else if (info->swipe_period[j].target_x < -1 || info->swipe_period[j].target_y < -1)
             return dove::STABIL_TARGET_PT_NOT_INSERTED;
     }

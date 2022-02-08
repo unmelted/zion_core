@@ -68,14 +68,8 @@ void Dove::ConvertToParam(VIDEO_INFO* info) {
         one.order = i;
         one.start = info->swipe_period[i].start;
         one.end = info->swipe_period[i].end;
-        if (info->swipe_period[i].target_x == -1 || info->swipe_period[i].target_y == -1) {
-            one.target_x = int(1920 / 2);
-            one.target_y = int(1080 / 2);
-        }
-        else {
-            one.target_x = int(info->swipe_period[i].target_x / 2);
-            one.target_y = int(info->swipe_period[i].target_y / 2);
-        }
+        one.target_x = int(info->swipe_period[i].target_x);
+        one.target_y = int(info->swipe_period[i].target_y);
         one.zoom = info->swipe_period[i].zoom;
         si.push_back(one);
         CMd_DEBUG("SW Period {} {} ", one.start, one.end);
@@ -330,6 +324,7 @@ int Dove::Process() {
 #endif
 
         if (frame_index == t_frame_start) {
+                pre_obj->clear();            
 #if defined GPU
             if (p->roi_input) {
                 p->roi_sx = si[swipe_index].target_x;
@@ -371,8 +366,8 @@ int Dove::Process() {
             tck->TrackerUpdate(src1o, frame_index, obj, roi);     
 #endif            
         }
-
-        //tck->DrawObjectTracking(src1o, obj, roi, false);
+        CMd_DEBUG("frame[{}] pre obj {} {} cur obj {} {} ", frame_index, pre_obj->cx, pre_obj->cy, obj->cx, obj->cy);
+        tck->DrawObjectTracking(src1o, obj, roi, true);
         double dx = 0;
         double dy = 0;
         double da = 0;
@@ -401,7 +396,7 @@ int Dove::Process() {
 #else
                     tck->SetBg(src1o, frame_index);
 #endif
-                }
+                }           
             }
         }
         if(final)
@@ -705,6 +700,10 @@ int Dove::MakeNewTrajectory(Rect* mg) {
         vector<Trajectory>cur_traj;
         vector<Trajectory>smoothed_traj;
         vector<TransformParam>new_delta;
+
+        a = 0;
+        x = 0;
+        y = 0;
 
         for(size_t i = si[index].start+1 ; i < si[index].end; i ++) {
             //findex = i - si[index].start;
