@@ -338,8 +338,11 @@ int Dove::Process() {
                 } 
                 tck->TrackerInitFx(src1og, frame_index, p->roi_sx, p->roi_sy, obj, roi);
             }
-            else
-                tck->TrackerInit(src1og, frame_index, obj, roi);
+            else {
+                result = tck->TrackerInit(src1og, frame_index, obj, roi);
+                if(result != ERR_NONE)
+                    return STABIL_CANT_GRAP_TRACKINGPT;
+            }
 #else
             if(p->roi_input) {
                 p->roi_sx = si[swipe_index].target_x;
@@ -353,8 +356,11 @@ int Dove::Process() {
                 }
                 tck->TrackerInitFx(src1o, frame_index, p->roi_sx, p->roi_sy, obj, roi);
             }
-            else 
-                tck->TrackerInit(src1o, frame_index, obj, roi);
+            else {
+                result = tck->TrackerInit(src1o, frame_index, obj, roi);
+                if(result != ERR_NONE)
+                    return STABIL_CANT_GRAP_TRACKINGPT;
+            }
 #endif
             FRAME_INFO one(frame_index);
             all.push_back(one);

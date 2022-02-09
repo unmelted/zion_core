@@ -68,6 +68,7 @@ typedef enum _err {
     STABIL_PERIOD_NOT_INSERTED      = -42,  
     STABIL_CANT_MAKE_PROPER_VIDEO   = -43,
     STABIL_CANT_DECODE_FILE         = -44,
+    STABIL_CANT_GRAP_TRACKINGPT     = -45,
     STABIL_COMPLETE             = 199,
 } ERR;
 
