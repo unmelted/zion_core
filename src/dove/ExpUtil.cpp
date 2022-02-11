@@ -22,6 +22,10 @@ using namespace dove;
 
 int ExpUtil::ImportVideoInfo(const string js, VIDEO_INFO* info, bool filemode) {
     json j;    
+    
+    int sw_limit = GetSwipeLimitValue();
+    CMd_INFO("Swipe limit : {}", sw_limit);
+    vector<SWIPE_INFO>period_t;
 
     if(filemode == true) {
         ifstream json_file(js);
@@ -58,11 +62,16 @@ int ExpUtil::ImportVideoInfo(const string js, VIDEO_INFO* info, bool filemode) {
         swi.target_y = elm["target_y"];
         swi.zoom = elm["zoom"];
         cout<< "SWIPE PERIOD start " << swi.start << " end " << swi.end << endl;;
-        info->swipe_period.push_back(swi); 
+        period_t.push_back(swi); 
     }
 
-    std::sort(info->swipe_period.begin(), info->swipe_period.end(), [](SWIPE_INFO a, SWIPE_INFO b) {
+    std::sort(period_t.begin(), period_t.end(), [](SWIPE_INFO a, SWIPE_INFO b) {
               return a.order < b.order; });
+    
+    for(int j = 0; j < period_t.size(); j ++){
+        if (sw_limit == 0 || j < sw_limit)
+            info->swipe_period.push_back(period_t[j]);
+    }
 
     CMd_INFO("input video : {}", info->input);
     CMd_INFO("output : {}", info->output);
@@ -85,6 +94,20 @@ int ExpUtil::ImportVideoInfo(const string js, VIDEO_INFO* info, bool filemode) {
     }
 
     return ERR_NONE;
+}
+
+int ExpUtil::GetSwipeLimitValue() {
+    int limit = 0;
+    json j;        
+	std::ifstream json_file(Configurator::Path::INIF);
+	if (json_file) {
+		json_file >> j;
+		if (j.contains("swipe_limit") == true) {
+			limit = j["swipe_limit"];
+			CMd_INFO("swipe limit value : {}", limit);
+		}        
+	}
+    return limit;
 }
 
 void ExpUtil::TestGetSwipeInfo(string _in, PARAM* p) {

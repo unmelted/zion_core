@@ -25,6 +25,7 @@ class ExpUtil {
 
 public:
     int ImportVideoInfo(const string js, VIDEO_INFO* info, bool filemode = false);
+    int GetSwipeLimitValue();
     void TestGetSwipeInfo(string _in, PARAM* p);
 
 private:
