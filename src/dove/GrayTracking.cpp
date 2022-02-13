@@ -138,7 +138,7 @@ void GrayTracking::SetBg(cuda::GpuMat& src, int frame_id) {
     
     bgg.download(check);
     char fname[200];
-    sprintf(fname, "dump/gpu_bg_%s.png", Configurator::Get().getgetCurrentDateTime("date").c_str());    
+    sprintf(fname, "dump/gpu_bg_%s.png", Configurator::Get().getCurrentDateTime("date").c_str());    
     imwrite(fname, check);
     CMd_DEBUG("Setbg function finish {} {} ", bg.cols, bg.rows);
 }
