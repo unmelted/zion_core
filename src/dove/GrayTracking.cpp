@@ -61,7 +61,9 @@ void GrayTracking::SetBg(Mat& src, int frame_id) {
     clahe->setClipLimit(20);
     clahe->apply(result, temp);
     GaussianBlur(temp, bg, {3, 3}, 1.3, 1.3);
-    imwrite("dump/cpu_bg.png", bg);
+    char fname[200];
+    sprintf(fname, "dump/cpu_bg_%s.png", Configurator::Get().getCurrentDateTime("now").c_str());
+    imwrite(fname, bg);
     CMd_DEBUG("Setbg function finish {} {} ", bg.cols, bg.rows);
 }
 
@@ -135,7 +137,9 @@ void GrayTracking::SetBg(cuda::GpuMat& src, int frame_id) {
     temp.release();
     
     bgg.download(check);
-    imwrite("dump/gpu_bg2.png", check);
+    char fname[200];
+    sprintf(fname, "dump/gpu_bg_%s.png", Configurator::Get().getCurrentDateTime("date").c_str());    
+    imwrite(fname, check);
     CMd_DEBUG("Setbg function finish {} {} ", bg.cols, bg.rows);
 }
 
@@ -179,10 +183,14 @@ int GrayTracking::TrackerInit(cuda::GpuMat& src, int index, TRACK_OBJ* obj, TRAC
 
     cuda::minMaxLoc(diffg, &minval, &maxval, &minloc, &maxloc, noArray());
     CMd_DEBUG("PickArea minval {} maxval {} minloc {} {} maxloc {} {}", minval, maxval, minloc.x, minloc.y, maxloc.x, maxloc.y);
+    if(maxloc.x == 0 && maxloc.y == 0)
+        return STABIL_CANT_GRAP_TRACKINGPT;        
     diffg.download(diff);
-    imwrite("dump/gpu_diff.png", diff);
+    char fname[200];
+    sprintf(fname, "dump/gpu_track_init_%s.png", Configurator::Get().getCurrentDateTime("date").c_str());    
+    imwrite(fname, diff);
     result = TrackerInitPost(maxloc, obj, roi);
-    return result;    
+    return ERR_NONE;    
 }
 
 int GrayTracking::TrackerUpdate(cuda::GpuMat& src, int index, TRACK_OBJ* obj, TRACK_OBJ* roi) {
@@ -226,16 +234,23 @@ int GrayTracking::TrackerInit(Mat& src, int index, TRACK_OBJ* obj, TRACK_OBJ* ro
     Point minloc; Point maxloc;
     Mat cur; Mat dst;
     ImageProcess(src, cur);
-    imwrite("dump/tracker_init_cpu.png", cur);
     CMd_DEBUG("PickArea cos/row {} {} st_frame {}  index {}", cur.cols, cur.rows, start_frame, index);
+    Mat mask = Mat::zeros(cur.rows, cur.cols, CV_8UC1);
+    rectangle(mask, Point(60, 40), Point(cur.cols - 60, cur.rows - 40), Scalar(255), -1);
+    //cv::bitwise_and(mask, cur, dst);
+
     cv::subtract(bg, cur, diff);
     //float diff_val = cv::sum(diff)[0]/(scale_w * scale_h);
 
-    cv::minMaxLoc(diff, &minval, &maxval, &minloc, &maxloc, Mat());
+    cv::minMaxLoc(diff, &minval, &maxval, &minloc, &maxloc, mask);
     CMd_DEBUG("PickArea minval {} maxval {}  minloc {} {} maxloc {} {}", minval, maxval, minloc.x, minloc.y, maxloc.x, maxloc.y);
-    imwrite("dump/cpu_diff.png", diff);
+    if(maxloc.x == 0 && maxloc.y == 0)
+        return STABIL_CANT_GRAP_TRACKINGPT;
+    char fname[200];
+    sprintf(fname, "dump/cpu_track_init_%s.png", Configurator::Get().getCurrentDateTime("now").c_str());    
+    imwrite(fname, diff);
     result = TrackerInitPost(maxloc, obj, roi);
-    return result;       
+    return ERR_NONE;       
 }
 
 int GrayTracking::TrackerUpdate(Mat& src, int index, TRACK_OBJ* obj, TRACK_OBJ* roi) {
@@ -287,6 +302,14 @@ int GrayTracking::TrackerInitPost(Point& max, TRACK_OBJ* obj, TRACK_OBJ* roi) {
     ConvertToRect(roi, &rect_roi);
     CMd_DEBUG("gray rect roi for tracker init {} {} {} {}", rect_roi.x, rect_roi.y, rect_roi.width, rect_roi.height);
     tracker->init(diff, rect_roi);
+    //img debug    
+    Mat du;
+    diff.copyTo(du);
+    circle(du, Point(max.x, max.y), 3, Scalar(255, 0, 0), -1);    
+    char fname[200];
+    sprintf(fname, "dump/track_init_%s.png", Configurator::Get().getCurrentDateTime("now").c_str());
+    imwrite(fname, du);    
+
     isfound = true;
     //DrawObjectTracking(diff, obj, roi, false, 1);
     return ERR_NONE;

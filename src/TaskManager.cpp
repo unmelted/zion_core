@@ -54,7 +54,7 @@ TaskManager::~TaskManager() {
 }
 
 template <class F, class... Args>
-void TaskManager::EnqueueJob(MessageQueue<int>* fu, F&& f, Args&&... args) {
+void TaskManager::EnqueueJob(ThingQueue<int>* fu, F&& f, Args&&... args) {
     if (stop_all) {
         throw std::runtime_error("Can't add job in ThreadPool");
     }
@@ -108,8 +108,10 @@ int TaskManager::CommandTask(int mode, std::string arg) {
         CMd_INFO(" swipe period size {} ", info->swipe_period.size());
         if (result == CMD::ERR_NONE)        
             EnqueueJob(&m_future, &TaskManager::RunStabilize, this, info);
-        else 
+        else {
             CMd_WARN(" Stabilization Message is not compatible ERR: {} ", result);
+            m_qTMSG.Dequeue();
+        }
 
     } else if (mode == CMD::UPDATE_CONFIGURE) {
 

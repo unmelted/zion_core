@@ -41,7 +41,7 @@
 #include "DaemonDefine.h"
 #include "CMdLogger.hpp"
 #include "json.hpp"
-#include "MessageQueue.h"
+#include "ThingQueue.h"
 #include "Configurator.hpp"
 #include "Stabilization.hpp"
 

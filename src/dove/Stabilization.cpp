@@ -68,14 +68,8 @@ void Dove::ConvertToParam(VIDEO_INFO* info) {
         one.order = i;
         one.start = info->swipe_period[i].start;
         one.end = info->swipe_period[i].end;
-        if (info->swipe_period[i].target_x == -1 || info->swipe_period[i].target_y == -1) {
-            one.target_x = int(1920 / 2);
-            one.target_y = int(1080 / 2);
-        }
-        else {
-            one.target_x = int(info->swipe_period[i].target_x / 2);
-            one.target_y = int(info->swipe_period[i].target_y / 2);
-        }
+        one.target_x = int(info->swipe_period[i].target_x);
+        one.target_y = int(info->swipe_period[i].target_y);
         one.zoom = info->swipe_period[i].zoom;
         si.push_back(one);
         CMd_DEBUG("SW Period {} {} ", one.start, one.end);
@@ -198,6 +192,8 @@ void Dove::Initialize() {
     smth.at<double>(0,1) = 0; 
     smth.at<double>(1,0) = 0; 
     smth.at<double>(1,1) = 1;      
+    p->read_wait = 1000; //msec
+
     CMd_INFO("Initialized compelete.");    
 }
 
@@ -257,7 +253,7 @@ int Dove::Process() {
     CMd_DEBUG("si {} {}  ",si[swipe_index].start, si[swipe_index].end);     
     int t_frame_start = si[swipe_index].start;
     int t_frame_end = si[swipe_index].end;
-    
+    int retry_cnt = 0;
     while(true) {
 #if defined GPU
 #ifdef WIN_TRANS
@@ -268,6 +264,10 @@ int Dove::Process() {
          }
          else if (!ret) {
              CMd_DEBUG("trans.readframe ret {} continue.. ", ret);
+             std::this_thread::sleep_for(std::chrono::milliseconds(100));
+             retry_cnt++;
+             if (p->read_wait <= retry_cnt * 100)
+                 return STABIL_CANT_DECODE_FILE;
              continue;
          }             
          //else {
@@ -302,10 +302,12 @@ int Dove::Process() {
             ImageProcess(src1oc, src1o);
             tck->SetBg(src1o, frame_index);
 #endif
-            FRAME_INFO one(frame_index);
-            all.push_back(one);
-            frame_index++;
-            continue;
+            if (frame_index != t_frame_start) {
+                FRAME_INFO one(frame_index);
+                all.push_back(one);
+                frame_index++;
+                continue;
+            }
         }
                 
         if(frame_index < t_frame_start || frame_index > t_frame_end || final == true) {
@@ -322,6 +324,7 @@ int Dove::Process() {
 #endif
 
         if (frame_index == t_frame_start) {
+                pre_obj->clear();            
 #if defined GPU
             if (p->roi_input) {
                 p->roi_sx = si[swipe_index].target_x;
@@ -335,8 +338,11 @@ int Dove::Process() {
                 } 
                 tck->TrackerInitFx(src1og, frame_index, p->roi_sx, p->roi_sy, obj, roi);
             }
-            else
-                tck->TrackerInit(src1og, frame_index, obj, roi);
+            else {
+                result = tck->TrackerInit(src1og, frame_index, obj, roi);
+                if(result != ERR_NONE)
+                    return STABIL_CANT_GRAP_TRACKINGPT;
+            }
 #else
             if(p->roi_input) {
                 p->roi_sx = si[swipe_index].target_x;
@@ -350,8 +356,11 @@ int Dove::Process() {
                 }
                 tck->TrackerInitFx(src1o, frame_index, p->roi_sx, p->roi_sy, obj, roi);
             }
-            else 
-                tck->TrackerInit(src1o, frame_index, obj, roi);
+            else {
+                result = tck->TrackerInit(src1o, frame_index, obj, roi);
+                if(result != ERR_NONE)
+                    return STABIL_CANT_GRAP_TRACKINGPT;
+            }
 #endif
             FRAME_INFO one(frame_index);
             all.push_back(one);
@@ -363,8 +372,8 @@ int Dove::Process() {
             tck->TrackerUpdate(src1o, frame_index, obj, roi);     
 #endif            
         }
-
-        tck->DrawObjectTracking(src1o, obj, roi, false);
+        CMd_DEBUG("frame[{}] pre obj {} {} cur obj {} {} ", frame_index, pre_obj->cx, pre_obj->cy, obj->cx, obj->cy);
+        tck->DrawObjectTracking(src1o, obj, roi, true);
         double dx = 0;
         double dy = 0;
         double da = 0;
@@ -393,7 +402,7 @@ int Dove::Process() {
 #else
                     tck->SetBg(src1o, frame_index);
 #endif
-                }
+                }           
             }
         }
         if(final)
@@ -697,6 +706,10 @@ int Dove::MakeNewTrajectory(Rect* mg) {
         vector<Trajectory>cur_traj;
         vector<Trajectory>smoothed_traj;
         vector<TransformParam>new_delta;
+
+        a = 0;
+        x = 0;
+        y = 0;
 
         for(size_t i = si[index].start+1 ; i < si[index].end; i ++) {
             //findex = i - si[index].start;

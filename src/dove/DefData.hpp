@@ -50,6 +50,7 @@
 #include <algorithm>
 #include "Configurator.hpp"
 #include "CMdLogger.hpp"
+#include "ThingQueue.h"
 
 #if defined _MAC_
 #include "darknet/yolo_v2_class.hpp"
@@ -67,6 +68,8 @@ typedef enum _err {
     STABIL_TARGET_PT_NOT_INSERTED   = -41,      
     STABIL_PERIOD_NOT_INSERTED      = -42,  
     STABIL_CANT_MAKE_PROPER_VIDEO   = -43,
+    STABIL_CANT_DECODE_FILE         = -44,
+    STABIL_CANT_GRAP_TRACKINGPT     = -45,
     STABIL_COMPLETE             = 199,
 } ERR;
 
@@ -155,6 +158,12 @@ typedef struct _trackobj {
         cy = sy + h/2;
         ex = sx + w;
         ey = sy + h;
+    }
+    void clear() {
+        sx = 0; sy = 0;
+        w = 0; h = 0;
+        cx = 0; cy = 0;
+        ex = 0; ey = 0;
     }
     int GetArea() {
         return w * h;
@@ -268,6 +277,8 @@ typedef struct _param {
 
     int dst_width;
     int dst_height;
+
+    int read_wait;
 
     bool has_mask; //no use
 }PARAM;
