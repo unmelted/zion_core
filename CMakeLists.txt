@@ -51,6 +51,8 @@ file(GLOB PRJ_SRC   ${PRJ_PATH}/src/*.cpp
 if( ${PLATFORM} STREQUAL "MACM1" )
     list(REMOVE_ITEM PRJ_SRC ${PRJ_PATH}/src/FrTrans.cpp)
 endif()
+list(REMOVE_ITEM PRJ_SRC ${PRJ_PATH}/src/dove/Stabilization_bckp.cpp)
+list(REMOVE_ITEM PRJ_SRC ${PRJ_PATH}/src/dove/Stabilization_bckp.hpp)    
 
 file(GLOB PRJ_INC      ${PRJ_PATH}/src/*.hpp
                        ${PRJ_PATH}/src/common/*.hpp
