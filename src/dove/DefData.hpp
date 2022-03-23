@@ -50,7 +50,6 @@
 #include <algorithm>
 #include "Configurator.hpp"
 #include "CMdLogger.hpp"
-#include "ThingQueue.h"
 
 #if defined _MAC_
 #include "darknet/yolo_v2_class.hpp"

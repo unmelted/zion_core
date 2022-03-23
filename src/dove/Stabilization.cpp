@@ -64,8 +64,8 @@ void Dove::ConvertToParam(VIDEO_INFO* info) {
         one.order = i;
         one.start = info->swipe_period[i].start;
         one.end = info->swipe_period[i].end;
-        one.target_x = int(info->swipe_period[i].target_x);
-        one.target_y = int(info->swipe_period[i].target_y);
+            one.target_x = int(info->swipe_period[i].target_x);
+            one.target_y = int(info->swipe_period[i].target_y);
         one.zoom = info->swipe_period[i].zoom;
         si.push_back(one);
         CMd_DEBUG("SW Period {} {} ", one.start, one.end);
@@ -357,8 +357,8 @@ int Dove::Process() {
             tck->TrackerUpdate(src1o, frame_index, obj, roi);     
 #endif            
         }
-        CMd_DEBUG("frame[{}] pre obj {} {} cur obj {} {} ", frame_index, pre_obj->cx, pre_obj->cy, obj->cx, obj->cy);
-        tck->DrawObjectTracking(src1o, obj, roi, true);
+
+        //tck->DrawObjectTracking(src1o, obj, roi, false);
         double dx = 0;
         double dy = 0;
         double da = 0;
@@ -387,7 +387,7 @@ int Dove::Process() {
 #else
                     tck->SetBg(src1o, frame_index);
 #endif
-                }           
+                }
             }
         }
         if(final)
@@ -695,7 +695,6 @@ int Dove::MakeNewTrajectory(Rect* mg) {
         a = 0;
         x = 0;
         y = 0;
-
         for(size_t i = si[index].start+1 ; i < si[index].end; i ++) {
             //findex = i - si[index].start;
             cur_delta.push_back(TransformParam(all[i].dx, all[i].dy, 0));

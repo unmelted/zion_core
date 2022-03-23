@@ -237,8 +237,6 @@ int GrayTracking::TrackerInit(Mat& src, int index, TRACK_OBJ* obj, TRACK_OBJ* ro
     CMd_DEBUG("PickArea cos/row {} {} st_frame {}  index {}", cur.cols, cur.rows, start_frame, index);
     Mat mask = Mat::zeros(cur.rows, cur.cols, CV_8UC1);
     rectangle(mask, Point(60, 40), Point(cur.cols - 60, cur.rows - 40), Scalar(255), -1);
-    //cv::bitwise_and(mask, cur, dst);
-
     cv::subtract(bg, cur, diff);
     //float diff_val = cv::sum(diff)[0]/(scale_w * scale_h);
 
@@ -316,7 +314,9 @@ int GrayTracking::TrackerInitPost(Point& max, TRACK_OBJ* obj, TRACK_OBJ* roi) {
 }
 
 int GrayTracking::TrackerUpdatePost(TRACK_OBJ* obj, TRACK_OBJ* roi) {
-    bool ret = tracker->update(diff, rect_roi);
+    // add linux compile test..
+    bool ret = false;
+    //bool ret = tracker->update(diff, rect_roi);
     //CMd_INFO("tracker update {} {} {} {} ", rect_roi.x, rect_roi.y, rect_roi.width, rect_roi.height);
    
     if (ret == false) {
