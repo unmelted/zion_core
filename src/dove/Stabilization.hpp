@@ -84,10 +84,8 @@ public:
     ~Dove();
     void SetInfo(VIDEO_INFO* vinfo);
     void Initialize();    
-    int ProcessTemp();
     int Process();
-    int ProcessLK();
-    void ProcessChristmas();
+
 #if defined GPU
     int ImageProcess(cuda::GpuMat& src, cuda::GpuMat& dst);
     void SetRefG(cuda::GpuMat& _src) { _src.copyTo(refg); };
@@ -102,30 +100,13 @@ public:
     void SetRefC(Mat& _src) {_src.copyTo(refc); };
     int CalculateMove(Mat& cur, int frame_id);
     int CalculateMove(int frame_id);
-    int CompensateMovement(int frame_id);
-    int Detect(Mat cur, int frame_id = -1);
-
-    int CalculateMove_LK(Mat& cur, int frame_id);
-    int CalculateMove_Integral(Mat& cur);
-    int CalculateMove_Tracker(Mat& cur);
 
     int MakeMask();
     void ApplyImage(Mat& src, bool scaled = false);
     void ApplyImageRef();
     int CalculcateMargin(double minx, double maxx, double miny, double maxy, Rect* mg);
 
-    int stab_2dof(char* in, char* out, int coord[4]);
-    int stab_fastwin(char* in, char* out, int coord[4]);
-    int stab_6dof(char* in, char* out);
-
     int PickArea(Mat& src, WIN_INFO* _info, PARAM* p);
-    int cvt_coord_to_vstmap(int sx, int sy, int range, int dx, int dy, int* tx, int ty);
-    int GetImageSum(Mat& itg, int xx, int yy, int x, int y);
-    int Search(WIN_INFO* t_win, WIN_INFO* q_win, PARAM* p);
-    int RecursiveParent(int t_sum, int _x, int _y, int* vst_map, WIN_INFO* _win, PARAM* p);
-    int Recursive(int t_sum, int anc_x, int anc_y, int* vst_map, WIN_INFO* win_info, PARAM* p, int a);
-    int SpiralSearch(int t_sum, int _x, int _y, int* vst_map, WIN_INFO* _win, PARAM* p);
-    void InfoMove(WIN_INFO* t, WIN_INFO* q);
 
 private :
     ofstream out_transform;
