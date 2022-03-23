@@ -27,7 +27,7 @@ public:
     ~TaskManager();
 
     template <class F, class... Args>
-    void EnqueueJob( ThingQueue<int>* fu, F&& f, Args&&... args);
+    void EnqueueJob( MessageQueue<int>* fu, F&& f, Args&&... args);
     void OnRcvTask(std::shared_ptr<CMD::MSG_T>pData);
     int CommandTask(int mode, std::string arg);//shared_ptr<VIDEO_INFO> arg);
     void SetSndQue(std::function<void(MsgManager&, const std::string msg)> que) {
@@ -42,8 +42,8 @@ private:
     std::queue<std::function<void()>> jobs;
     std::condition_variable cv_job;
     std::mutex m_job;
-    ThingQueue<int> m_future;
-    ThingQueue<std::shared_ptr<CMD::MSG_T>> m_qTMSG;    
+    MessageQueue<int> m_future;
+    MessageQueue<std::shared_ptr<CMD::MSG_T>> m_qTMSG;    
     std::function<void(MsgManager&, const std::string msg)>fSendQue;
 
     MsgManager* m_msgmanager;
