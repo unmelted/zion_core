@@ -52,18 +52,20 @@ if( ${PLATFORM} STREQUAL "MACM1" )
     list(REMOVE_ITEM PRJ_SRC ${PRJ_PATH}/src/FrTrans.cpp)
 endif()
 list(REMOVE_ITEM PRJ_SRC ${PRJ_PATH}/src/dove/Stabilization_bckp.cpp)
+list(REMOVE_ITEM PRJ_SRC ${PRJ_PATH}/src/dove/Detection.cpp)
 list(REMOVE_ITEM PRJ_SRC ${PRJ_PATH}/src/dove/Stabilization_bckp.hpp)    
+list(REMOVE_ITEM PRJ_SRC ${PRJ_PATH}/src/dove/Detection.hpp)
 
 file(GLOB PRJ_INC      ${PRJ_PATH}/src/*.hpp
                        ${PRJ_PATH}/src/common/*.hpp
                        ${PRJ_PATH}/src/daemon/*.h
                        ${PRJ_PATH}/src/dove/*.hpp
-                       ${DARKNET_PATH}/darknet.h
-                       ${DARKNET_PATH}/yolo_v2_class.hpp                       
+                       #${DARKNET_PATH}/darknet.h
+                       #${DARKNET_PATH}/yolo_v2_class.hpp                       
 )
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 include_directories(${GSL_INCLUDE_DIR} ${PRJ_INC} ${OpenCV_INCLUDE_DIRS} ${ZL_INCLUDE_DIR} ${SPD_INCLUDE_DIR})
 message(${OpenCV_INCLUDE_DIRS})
 add_executable(zion ${PRJ_SRC})
-target_link_libraries(zion ${GSL_LIB} ${ZL_LIB} ${OpenCV_LIBS}  ${DARKNET_LIB} ${SPD_LIB})
+target_link_libraries(zion ${GSL_LIB} ${ZL_LIB} ${OpenCV_LIBS} ${SPD_LIB})

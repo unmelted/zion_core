@@ -18,8 +18,10 @@
 #include <map>
 #include "DefData.hpp"
 #if defined _MAC_
+#if defined _DT
 #include "Detection.hpp"
 #include "CMdLogger.hpp"
+#endif
 #endif
 #include "ColorTracking.hpp"
 #include "GrayTracking.hpp"
@@ -42,11 +44,13 @@ public:
     ANALYSIS an;
 
 #if defined _MAC_
-    Detection dt;
+#if defined _DT
+     Detection dt;
     map<int, DT_OBJECTS>objects;
     ofstream obj_trajectory;
     ofstream obj_c_trajectory;    
-    CMdLogger _logger;
+     CMdLogger _logger;
+#endif     
 #endif
     map<int, DT_XY>dt_comp;     // win compile
 

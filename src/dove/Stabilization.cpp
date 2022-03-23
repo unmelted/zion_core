@@ -148,6 +148,7 @@ void Dove::Initialize() {
     
     if(p->run_detection == true) {
 #if defined _MAC_
+#if defined _DT
         if(p->detector_type == DARKNET_YOLOV4) {
             dt = Detection();
             p->detect_threshold = 0.5;
@@ -160,6 +161,7 @@ void Dove::Initialize() {
             obj_c_trajectory.open("analysis/detected_obj_center.txt");        
             dt.LoadModel(p);            
         }
+#endif        
 #endif
     }
 
